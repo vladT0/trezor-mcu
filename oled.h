@@ -44,6 +44,7 @@
 #define OLED_YELLOW	(0x01)
 #define	OLED_RED	(0x02)
 #define OLED_BLUE	(0x03)
+#define OLED_GREEN	(0x04)
 #define OLED_WHITE 	(0x0F)
 
 // To fit in 4KB of SRAM, use 4 bits per pixel, to
