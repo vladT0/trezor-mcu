@@ -241,23 +241,29 @@ static void ethereumFormatAmount(const bignum256 *amnt, const TokenType *token, 
 		suffix = " Wei";
 		decimals = 0;
 	} else {
-	    if (tx_type == 1 || tx_type == 6) {
-	        suffix = " WAN";
-	    } else {
-            switch (chain_id) {
-                case  1: suffix = " ETH";  break;  // Ethereum Mainnet
-                case 61: suffix = " ETC";  break;  // Ethereum Classic Mainnet
-                case 62: suffix = " tETC"; break;  // Ethereum Classic Testnet
-                case 30: suffix = " RSK";  break;  // Rootstock Mainnet
-                case 31: suffix = " tRSK"; break;  // Rootstock Testnet
-                case  3: suffix = " tETH"; break;  // Ethereum Testnet: Ropsten
-                case  4: suffix = " tETH"; break;  // Ethereum Testnet: Rinkeby
-                case 42: suffix = " tETH"; break;  // Ethereum Testnet: Kovan
-                case  2: suffix = " EXP";  break;  // Expanse
-                case  8: suffix = " UBQ";  break;  // UBIQ
-                default: suffix = " UNKN"; break;  // unknown chain
-            }
-	    }
+		if (tx_type == 1 || tx_type == 6) {
+			suffix = " WAN";
+		} else {
+			// constants from trezor-common/defs/ethereum/networks.json
+			switch (chain_id) {
+				case    1: suffix = " ETH";  break;  // Ethereum
+				case    2: suffix = " EXP";  break;  // Expanse
+				case    3: suffix = " tETH"; break;  // Ethereum Testnet Ropsten
+				case    4: suffix = " tETH"; break;  // Ethereum Testnet Rinkeby
+				case    8: suffix = " UBQ";  break;  // UBIQ
+				case   20: suffix = " EOSC"; break;  // EOS Classic
+				case   28: suffix = " ETSC"; break;  // Ethereum Social
+				case   30: suffix = " RSK";  break;  // RSK
+				case   31: suffix = " tRSK"; break;  // RSK Testnet
+				case   42: suffix = " tETH"; break;  // Ethereum Testnet Kovan
+				case   61: suffix = " ETC";  break;  // Ethereum Classic
+				case   62: suffix = " tETC"; break;  // Ethereum Classic Testnet
+				case   64: suffix = " ELLA"; break;  // Ellaism
+				case  820: suffix = " CLO";  break;  // Callisto
+				case 1987: suffix = " EGEM"; break;  // EtherGem
+				default  : suffix = " UNKN"; break;  // unknown chain
+			}
+		}
 	}
 	bn_format(amnt, NULL, suffix, decimals, 0, false, buf, buflen);
 }
@@ -455,10 +461,10 @@ void ethereum_signing_init(EthereumSignTx *msg, const HDNode *node)
 		chain_id = 0;
 	}
 
-    /* Wanchain txtype */
+	/* Wanchain txtype */
 	if (msg->has_tx_type) {
 		if (msg->tx_type == 1 || msg->tx_type == 6) {
-    		tx_type = msg->tx_type;
+			tx_type = msg->tx_type;
 		} else {
 			fsm_sendFailure(FailureType_Failure_DataError, _("Txtype out of bounds"));
 			ethereum_signing_abort();
@@ -548,9 +554,9 @@ void ethereum_signing_init(EthereumSignTx *msg, const HDNode *node)
 	rlp_length += rlp_calculate_length(msg->to.size, msg->to.bytes[0]);
 	rlp_length += rlp_calculate_length(msg->value.size, msg->value.bytes[0]);
 	rlp_length += rlp_calculate_length(data_total, msg->data_initial_chunk.bytes[0]);
-    if (tx_type) {
-        rlp_length += rlp_calculate_length(1, tx_type);
-    }
+	if (tx_type) {
+		rlp_length += rlp_calculate_length(1, tx_type);
+	}
 	if (chain_id) {
 		rlp_length += rlp_calculate_length(1, chain_id);
 		rlp_length += rlp_calculate_length(0, 0);
@@ -562,9 +568,9 @@ void ethereum_signing_init(EthereumSignTx *msg, const HDNode *node)
 
 	layoutProgress(_("Signing"), 100);
 
-    if (tx_type) {
-        hash_rlp_number(tx_type);
-    }
+	if (tx_type) {
+		hash_rlp_number(tx_type);
+	}
 	hash_rlp_field(msg->nonce.bytes, msg->nonce.size);
 	hash_rlp_field(msg->gas_price.bytes, msg->gas_price.size);
 	hash_rlp_field(msg->gas_limit.bytes, msg->gas_limit.size);
@@ -628,9 +634,17 @@ static void ethereum_message_hash(const uint8_t *message, size_t message_len, ui
 	struct SHA3_CTX ctx;
 	sha3_256_Init(&ctx);
 	sha3_Update(&ctx, (const uint8_t *)"\x19" "Ethereum Signed Message:\n", 26);
-	uint8_t varint[5];
-	uint32_t l = ser_length(message_len, varint);
-	sha3_Update(&ctx, varint, l);
+	uint8_t c;
+	if (message_len > 1000000000) { c = '0' + message_len / 1000000000 % 10; sha3_Update(&ctx, &c, 1); }
+	if (message_len > 100000000)  { c = '0' + message_len / 100000000  % 10; sha3_Update(&ctx, &c, 1); }
+	if (message_len > 10000000)   { c = '0' + message_len / 10000000   % 10; sha3_Update(&ctx, &c, 1); }
+	if (message_len > 1000000)    { c = '0' + message_len / 1000000    % 10; sha3_Update(&ctx, &c, 1); }
+	if (message_len > 100000)     { c = '0' + message_len / 100000     % 10; sha3_Update(&ctx, &c, 1); }
+	if (message_len > 10000)      { c = '0' + message_len / 10000      % 10; sha3_Update(&ctx, &c, 1); }
+	if (message_len > 1000)       { c = '0' + message_len / 1000       % 10; sha3_Update(&ctx, &c, 1); }
+	if (message_len > 100)        { c = '0' + message_len / 100        % 10; sha3_Update(&ctx, &c, 1); }
+	if (message_len > 10)         { c = '0' + message_len / 10         % 10; sha3_Update(&ctx, &c, 1); }
+	                                c = '0' + message_len              % 10; sha3_Update(&ctx, &c, 1);
 	sha3_Update(&ctx, message, message_len);
 	keccak_Final(&ctx, hash);
 }

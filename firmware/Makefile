@@ -28,7 +28,7 @@ OBJS += ethereum.o
 OBJS += ethereum_tokens.o
 OBJS += nem2.o
 OBJS += nem_mosaics.o
-OBJS += stellar.o
+# OBJS += stellar.o
 
 OBJS += debug.o
 
@@ -65,6 +65,8 @@ OBJS += ../vendor/trezor-crypto/ripemd160.o
 OBJS += ../vendor/trezor-crypto/sha2.o
 OBJS += ../vendor/trezor-crypto/sha3.o
 OBJS += ../vendor/trezor-crypto/blake256.o
+OBJS += ../vendor/trezor-crypto/blake2b.o
+OBJS += ../vendor/trezor-crypto/groestl.o
 OBJS += ../vendor/trezor-crypto/hasher.o
 
 OBJS += ../vendor/trezor-crypto/aes/aescrypt.o
@@ -85,10 +87,11 @@ OBJS += protob/types.pb.o
 
 OPTFLAGS ?= -Os
 
-../vendor/trezor-crypto/%.o: OPTFLAGS = -O3
-../vendor/trezor-crypto/aes/%.o: OPTFLAGS = -O3
-../vendor/trezor-crypto/ed25519-donna/%.o: OPTFLAGS = -O3
-../vendor/nanopb/%.o: OPTFLAGS = -O3
+../vendor/trezor-crypto/bip32.o: OPTFLAGS = -O3
+../vendor/trezor-crypto/bip39.o: OPTFLAGS = -O3
+../vendor/trezor-crypto/ecdsa.o: OPTFLAGS = -O3
+../vendor/trezor-crypto/sha2.o: OPTFLAGS = -O3
+../vendor/trezor-crypto/secp256k1.o: OPTFLAGS = -O3
 
 include ../Makefile.include
 
@@ -103,6 +106,7 @@ CFLAGS += -DDEBUG_LOG=$(DEBUG_LOG)
 CFLAGS += -DSCM_REVISION='"$(shell git rev-parse HEAD | sed 's:\(..\):\\x\1:g')"'
 CFLAGS += -DUSE_ETHEREUM=1
 CFLAGS += -DUSE_NEM=1
+CFLAGS += -DUSE_MONERO=0
 
 define GENERATE_CODE
 # $(1) - Basename for script and output header file
@@ -119,6 +123,6 @@ clean::
 	rm -f $(1).h $(3)
 endef
 
-$(eval $(call GENERATE_CODE,coin_info,coins.json,coin_info.c))
-$(eval $(call GENERATE_CODE,nem_mosaics,nem_mosaics.json,nem_mosaics.c))
+$(eval $(call GENERATE_CODE,coin_info,defs,coin_info.c))
+$(eval $(call GENERATE_CODE,nem_mosaics,defs/nem/nem_mosaics.json,nem_mosaics.c))
 $(eval $(call GENERATE_CODE,bl_data,../bootloader/bootloader.bin))

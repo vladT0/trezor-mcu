@@ -97,6 +97,7 @@ int main(void)
 	setupApp();
 	__stack_chk_guard = random32(); // this supports compiler provided unpredictable stack protection checks
 #endif
+<<<<<<< HEAD
 //TVJ
 //	timer_init();
 
@@ -104,7 +105,18 @@ int main(void)
 // enable MPU (Memory Protection Unit)
 //TVJ
 //	mpu_config();
+=======
+
+	if (!is_mode_unprivileged()) {
+
+		timer_init();
+
+#ifdef APPVER
+		// enable MPU (Memory Protection Unit)
+		mpu_config();
+>>>>>>> e0b64b151df4aab3dec1e4941db2951bb2b91bc9
 #endif
+	}
 
 #if DEBUG_LINK
 	oledSetDebugLink(1);

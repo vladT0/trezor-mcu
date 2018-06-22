@@ -34,6 +34,7 @@
 
 #define MAX_WRONG_PINS 15
 
+bool protectAbortedByCancel = false;
 bool protectAbortedByInitialize = false;
 
 bool protectButton(ButtonRequestType type, bool confirm_only)
@@ -76,10 +77,9 @@ bool protectButton(ButtonRequestType type, bool confirm_only)
 		}
 
 		// check for Cancel / Initialize
-		if (msg_tiny_id == MessageType_MessageType_Cancel || msg_tiny_id == MessageType_MessageType_Initialize) {
-			if (msg_tiny_id == MessageType_MessageType_Initialize) {
-				protectAbortedByInitialize = true;
-			}
+		protectAbortedByCancel = (msg_tiny_id == MessageType_MessageType_Cancel);
+		protectAbortedByInitialize = (msg_tiny_id == MessageType_MessageType_Initialize);
+		if (protectAbortedByCancel || protectAbortedByInitialize) {
 			msg_tiny_id = 0xFFFF;
 			result = false;
 			break;
@@ -128,11 +128,11 @@ const char *requestPin(PinMatrixRequestType type, const char *text)
 			usbTiny(0);
 			return pma->pin;
 		}
-		if (msg_tiny_id == MessageType_MessageType_Cancel || msg_tiny_id == MessageType_MessageType_Initialize) {
+		// check for Cancel / Initialize
+		protectAbortedByCancel = (msg_tiny_id == MessageType_MessageType_Cancel);
+		protectAbortedByInitialize = (msg_tiny_id == MessageType_MessageType_Initialize);
+		if (protectAbortedByCancel || protectAbortedByInitialize) {
 			pinmatrix_done(0);
-			if (msg_tiny_id == MessageType_MessageType_Initialize) {
-				protectAbortedByInitialize = true;
-			}
 			msg_tiny_id = 0xFFFF;
 			usbTiny(0);
 			return 0;
@@ -182,6 +182,7 @@ bool protectPin(bool use_cached)
 		// wait one second
 		usbSleep(1000);
 		if (msg_tiny_id == MessageType_MessageType_Initialize) {
+			protectAbortedByCancel = false;
 			protectAbortedByInitialize = true;
 			msg_tiny_id = 0xFFFF;
 			usbTiny(0);
@@ -262,10 +263,10 @@ bool protectPassphrase(void)
 			result = true;
 			break;
 		}
-		if (msg_tiny_id == MessageType_MessageType_Cancel || msg_tiny_id == MessageType_MessageType_Initialize) {
-			if (msg_tiny_id == MessageType_MessageType_Initialize) {
-				protectAbortedByInitialize = true;
-			}
+		// check for Cancel / Initialize
+		protectAbortedByCancel = (msg_tiny_id == MessageType_MessageType_Cancel);
+		protectAbortedByInitialize = (msg_tiny_id == MessageType_MessageType_Initialize);
+		if (protectAbortedByCancel || protectAbortedByInitialize) {
 			msg_tiny_id = 0xFFFF;
 			result = false;
 			break;
