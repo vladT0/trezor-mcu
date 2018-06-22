@@ -2,6 +2,7 @@
  * This file is part of the TREZOR project, https://trezor.io/
  *
  * Copyright (C) 2014 Pavol Rusnak <stick@satoshilabs.com>
+ * Copyright (C) 2018 vladT0
  *
  * This library is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by

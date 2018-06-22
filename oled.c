@@ -2,6 +2,7 @@
  * This file is part of the TREZOR project, https://trezor.io/
  *
  * Copyright (C) 2014 Pavol Rusnak <stick@satoshilabs.com>
+ * Copyright (C) 2018 vladT0
  *
  * This library is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -33,12 +34,11 @@
 #define OLED_RST_PORT			GPIOB
 #define OLED_RST_PIN			GPIO1	// PB1 | Reset display
 
-/* TREZOR has a display of size OLED_WIDTH x OLED_HEIGHT (128x64).
- * The contents of this display are buffered in _oledbuffer.  This is
- * an array of OLED_WIDTH * OLED_HEIGHT/8 bytes.  At byte y*OLED_WIDTH + x
- * it stores the column of pixels from (x,8y) to (x,8y+7); the LSB stores
- * the top most pixel.  The pixel (0,0) is the top left corner of the
- * display.
+/*
+ * This library was modified for color display SSD1331 OLED_WIDTH x OLED_HEIGHT (96x64)
+ * The contents of this display are buffered in oledbuffer.  This is
+ * an array of OLED_WIDTH * OLED_HEIGHT/2 bytes. Palette has 16 colors.
+ * The pixel (0,0) is the top left corner of the display.
  */
 
 static bool is_debug_link = 0;
@@ -60,7 +60,7 @@ static uint16_t oled_colors[16] = {
 #define OLED_OFFSET(x, y) (x/2) + (y*OLED_WIDTH)/2
 
 /*
- * Draws a white pixel at x, y
+ * Draws a color pixel at x, y
  */
 
 void oledDrawPixel(int x, int y, uint8_t color)
@@ -76,7 +76,7 @@ void oledDrawPixel(int x, int y, uint8_t color)
 }
 
 /*
- * Clears pixel at x, y
+ * Clears pixel ( draw black ) at x, y
  */
 void oledClearPixel(int x, int y)
 {
@@ -202,9 +202,9 @@ void oledInit()
   	// clock division ratio. Default is 0xD0.
 		0xB3,
 		0xD0,
-  	// (I am going to ignore the 'Set Grayscale Table'
+  	// (I am going to ignore the 'Set Gray scale Table'
   	// command - it has a bunch of gamma curve settings.)
-  	// So, the 'Reset to Default Grayscale Table'
+  	// So, the 'Reset to Default Gray scale Table'
   	// command does make sense to call.
 		0xB9,
   	// 'Set Precharge Level'. Default is 0x3E.
@@ -518,7 +518,7 @@ void oledSwipeLeft(void)
 			ShiftLeftHalfByte(in,OLED_WIDTH/2);
 		}
 		oledRefresh();
-		delay(50000);
+		delay(20000);
 	}
 }
 
@@ -534,6 +534,6 @@ void oledSwipeRight(void)
 			ShiftRightHalfByte(in,OLED_WIDTH/2);
 		}
 		oledRefresh();
-		delay(50000);
+		delay(20000);
 	}
 }
