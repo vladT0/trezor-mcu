@@ -41,7 +41,7 @@ void pinmatrix_draw(const char *text)
 			if (text) {
 				oledDrawStringCenter(0, text, FONT_STANDARD);
 			}
-			oledDrawBitmap((OLED_WIDTH - 3 * w - 2 * pad) / 2 + i * (w + pad), OLED_HEIGHT - 3 * h - 2 * pad + j * (h + pad), bmp_digits[k]);
+			oledDrawBitmap((OLED_WIDTH-3*w-2*pad) / 2 + i * (w+pad), OLED_HEIGHT - 3 * h - 2 * pad + j * (h + pad), bmp_digits[k], OLED_WHITE);
 		}
 	}
 	oledRefresh();

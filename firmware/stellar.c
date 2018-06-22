@@ -1660,36 +1660,36 @@ void stellar_layoutSigningDialog(const char *line1, const char *line2, const cha
     strlcpy(str_header, _("Signing with "), sizeof(str_header));
     strlcat(str_header, str_pubaddr_truncated, sizeof(str_header));
 
-    oledDrawString(offset_x, offset_y, str_header, FONT_STANDARD);
+    oledDrawString(offset_x, offset_y, str_header, FONT_STANDARD, OLED_WHITE);
     offset_y += line_height;
     // Invert color on header
     oledInvert(0, 0, OLED_WIDTH, offset_y - 2);
 
     // Dialog contents begin
     if (line1) {
-        oledDrawString(offset_x, offset_y, line1, FONT_STANDARD);
+        oledDrawString(offset_x, offset_y, line1, FONT_STANDARD, OLED_WHITE);
     }
     offset_y += line_height;
     if (line2) {
-        oledDrawString(offset_x, offset_y, line2, FONT_STANDARD);
+        oledDrawString(offset_x, offset_y, line2, FONT_STANDARD, OLED_WHITE);
     }
     offset_y += line_height;
     if (line3) {
-        oledDrawString(offset_x, offset_y, line3, FONT_STANDARD);
+        oledDrawString(offset_x, offset_y, line3, FONT_STANDARD, OLED_WHITE);
     }
     offset_y += line_height;
     if (line4) {
-        oledDrawString(offset_x, offset_y, line4, FONT_STANDARD);
+        oledDrawString(offset_x, offset_y, line4, FONT_STANDARD, OLED_WHITE);
     }
     offset_y += line_height;
     if (line5) {
-        oledDrawString(offset_x, offset_y, line5, FONT_STANDARD);
+        oledDrawString(offset_x, offset_y, line5, FONT_STANDARD, OLED_WHITE);
     }
     offset_y += line_height;
 
     // Cancel button
-    oledDrawString(1, OLED_HEIGHT - 8, "\x15", FONT_STANDARD);
-    oledDrawString(fontCharWidth(FONT_STANDARD, '\x15') + 3, OLED_HEIGHT - 8, "Cancel", FONT_STANDARD);
+    oledDrawString(1, OLED_HEIGHT - 8, "\x15", FONT_STANDARD, OLED_WHITE);
+    oledDrawString(fontCharWidth(FONT_STANDARD, '\x15') + 3, OLED_HEIGHT - 8, "Cancel", FONT_STANDARD, OLED_WHITE);
     oledInvert(0, OLED_HEIGHT - 9, fontCharWidth(FONT_STANDARD, '\x15') + oledStringWidth("Cancel", FONT_STANDARD) + 2, OLED_HEIGHT - 1);
 
     // Warnings (drawn centered between the buttons
@@ -1706,8 +1706,8 @@ void stellar_layoutSigningDialog(const char *line1, const char *line2, const cha
         strlcpy(str_next_label, _("Next"), sizeof(str_next_label));
     }
 
-    oledDrawString(OLED_WIDTH - fontCharWidth(FONT_STANDARD, '\x06') - 1, OLED_HEIGHT - 8, "\x06", FONT_STANDARD);
-    oledDrawString(OLED_WIDTH - oledStringWidth(str_next_label, FONT_STANDARD) - fontCharWidth(FONT_STANDARD, '\x06') - 3, OLED_HEIGHT - 8, str_next_label, FONT_STANDARD);
+    oledDrawString(OLED_WIDTH - fontCharWidth(FONT_STANDARD, '\x06') - 1, OLED_HEIGHT - 8, "\x06", FONT_STANDARD, OLED_WHITE);
+    oledDrawString(OLED_WIDTH - oledStringWidth(str_next_label, FONT_STANDARD) - fontCharWidth(FONT_STANDARD, '\x06') - 3, OLED_HEIGHT - 8, str_next_label, FONT_STANDARD, OLED_WHITE);
     oledInvert(OLED_WIDTH - oledStringWidth(str_next_label, FONT_STANDARD) - fontCharWidth(FONT_STANDARD, '\x06') - 4, OLED_HEIGHT - 9, OLED_WIDTH - 1, OLED_HEIGHT - 1);
 
     oledRefresh();

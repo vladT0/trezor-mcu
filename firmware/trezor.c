@@ -31,6 +31,7 @@
 #include "buttons.h"
 #include "gettext.h"
 #include "bl_check.h"
+#include "resource.h"
 
 /* Screen timeout */
 uint32_t system_millis_lock_start;
@@ -48,7 +49,7 @@ void check_lock_screen(void)
 	// button held for long enough (2 seconds)
 	if (layoutLast == layoutHome && button.NoDown >= 285000 * 2) {
 
-		layoutDialog(&bmp_icon_question, _("Cancel"), _("Lock Device"), NULL, _("Do you really want to"), _("lock your TREZOR?"), NULL, NULL, NULL, NULL);
+		layoutDialog(&bmp_icon_question, _("Cancel"), _("Lock Device"), NULL, _(do_you_want), _("lock your TREZOR?"), NULL, NULL, NULL, NULL);
 
 		// wait until NoButton is released
 		usbTiny(1);
@@ -91,16 +92,18 @@ int main(void)
 	__stack_chk_guard = random32(); // this supports compiler provided unpredictable stack protection checks
 	oledInit();
 #else
-	check_bootloader();
+//TVJ
+//	check_bootloader();
 	setupApp();
 	__stack_chk_guard = random32(); // this supports compiler provided unpredictable stack protection checks
 #endif
-
-	timer_init();
+//TVJ
+//	timer_init();
 
 #ifdef APPVER
-	// enable MPU (Memory Protection Unit)
-	mpu_config();
+// enable MPU (Memory Protection Unit)
+//TVJ
+//	mpu_config();
 #endif
 
 #if DEBUG_LINK
@@ -108,7 +111,7 @@ int main(void)
 	storage_wipe();
 #endif
 
-	oledDrawBitmap(40, 0, &bmp_logo64);
+	oledDrawBitmap(40, 0, &bmp_logo64, OLED_WHITE);
 	oledRefresh();
 
 	storage_init();

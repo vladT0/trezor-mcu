@@ -214,28 +214,28 @@ void layoutHome(void)
 		layoutSwipe();
 	}
 	layoutLast = layoutHome;
-	const char *label = storage_isInitialized() ? storage_getLabel() : _("Go to trezor.io/start");
+	const char *label = storage_isInitialized() ? storage_getLabel() : _("Goto trezor.io/start");
 	const uint8_t *homescreen = storage_getHomescreen();
 	if (homescreen) {
 		BITMAP b;
-		b.width = 128;
+		b.width =  96;
 		b.height = 64;
 		b.data = homescreen;
-		oledDrawBitmap(0, 0, &b);
+		oledDrawBitmap(0, 0, &b, OLED_WHITE);
 	} else {
 		if (label && strlen(label) > 0) {
-			oledDrawBitmap(44, 4, &bmp_logo48);
+			oledDrawBitmap(28, 4, &bmp_logo48, OLED_YELLOW);
 			oledDrawStringCenter(OLED_HEIGHT - 8, label, FONT_STANDARD);
 		} else {
-			oledDrawBitmap(40, 0, &bmp_logo64);
+			oledDrawBitmap(24, 0, &bmp_logo64, OLED_YELLOW);
 		}
 	}
 	if (storage_unfinishedBackup()) {
-		oledBox(0, 0, 127, 8, false);
+		oledBox(0, 0, 95, 8, false, OLED_WHITE);
 		oledDrawStringCenter(0, "BACKUP FAILED!", FONT_STANDARD);
 	} else
 	if (storage_needsBackup()) {
-		oledBox(0, 0, 127, 8, false);
+		oledBox(0, 0, 95, 8, false, OLED_WHITE);
 		oledDrawStringCenter(0, "NEEDS BACKUP!", FONT_STANDARD);
 	}
 	oledRefresh();
@@ -270,17 +270,17 @@ void layoutConfirmOutput(const CoinInfo *coin, const TxOutputType *out)
 	layoutLast = layoutDialogSwipe;
 	layoutSwipe();
 	oledClear();
-	oledDrawBitmap(0, 0, &bmp_icon_question);
-	oledDrawString(20, 0 * 9, _("Confirm sending"), FONT_STANDARD);
-	oledDrawString(20, 1 * 9, str_out, FONT_STANDARD);
+	oledDrawBitmap(0, 0, &bmp_icon_question, OLED_WHITE);
+	oledDrawString(20, 0 * 9, _("Confirm sending"), FONT_STANDARD, OLED_WHITE);
+	oledDrawString(20, 1 * 9, str_out, FONT_STANDARD, OLED_WHITE);
 	int left = linelen > 18 ? 0 : 20;
-	oledDrawString(left, 2 * 9, str[0], FONT_FIXED);
-	oledDrawString(left, 3 * 9, str[1], FONT_FIXED);
-	oledDrawString(left, 4 * 9, str[2], FONT_FIXED);
-	oledDrawString(left, 5 * 9, str[3], FONT_FIXED);
+	oledDrawString(left, 2 * 9, str[0], FONT_FIXED, OLED_WHITE);
+	oledDrawString(left, 3 * 9, str[1], FONT_FIXED, OLED_WHITE);
+	oledDrawString(left, 4 * 9, str[2], FONT_FIXED, OLED_WHITE);
+	oledDrawString(left, 5 * 9, str[3], FONT_FIXED, OLED_WHITE);
 	if (!str[3][0]) {
 		if (out->address_n_count > 0) {
-			oledDrawString(0, 5*9, address_n_str(out->address_n, out->address_n_count), FONT_STANDARD);
+			oledDrawString(0, 5*9, address_n_str(out->address_n, out->address_n_count), FONT_STANDARD, OLED_WHITE);
 		} else {
 			oledHLine(OLED_HEIGHT - 13);
 		}
@@ -423,9 +423,9 @@ void layoutResetWord(const char *word, int pass, int word_pos, bool last)
 
 	const char *action;
 	if (pass == 1) {
-		action = _("Please check the seed");
+		action = _("Please check");
 	} else {
-		action = _("Write down the seed");
+		action = _("Write down");
 	}
 
 	char index_str[] = "##th word is:";
@@ -447,12 +447,13 @@ void layoutResetWord(const char *word, int pass, int word_pos, bool last)
 
 	int left = 0;
 	oledClear();
-	oledDrawBitmap(0, 0, &bmp_icon_info);
+	oledDrawBitmap(0, 0, &bmp_icon_info, OLED_RED);
 	left = bmp_icon_info.width + 4;
 
-	oledDrawString(left, 0 * 9, action, FONT_STANDARD);
-	oledDrawString(left, 2 * 9, word_pos < 10 ? index_str + 1 : index_str, FONT_STANDARD);
-	oledDrawString(left, 3 * 9, word, FONT_STANDARD | FONT_DOUBLE);
+	oledDrawString(left, 0 * 9, action, FONT_STANDARD, OLED_WHITE);
+	oledDrawString(left, 1 * 9, _("the seed"), FONT_STANDARD, OLED_WHITE);
+	oledDrawString(left, (2 * 9)+2, word_pos < 10 ? index_str + 1 : index_str, FONT_STANDARD, OLED_YELLOW);
+	oledDrawString(2, 3 * 9, word, FONT_STANDARD | FONT_DOUBLE, OLED_RED);
 	oledHLine(OLED_HEIGHT - 13);
 	layoutButtonYes(btnYes);
 	oledRefresh();
@@ -488,7 +489,7 @@ void layoutAddress(const char *address, const char *desc, bool qrcode, bool igno
 					int a = j * side + i;
 					if (bitdata[a / 8] & (1 << (7 - a % 8))) {
 						oledBox(offset + i * 2, offset + j * 2,
-								offset + 1 + i * 2, offset + 1 + j * 2, false);
+								offset + 1 + i * 2, offset + 1 + j * 2, false, OLED_WHITE);
 					}
 				}
 			}
@@ -507,12 +508,12 @@ void layoutAddress(const char *address, const char *desc, bool qrcode, bool igno
 		uint32_t rowlen = (addrlen - 1) / (addrlen <= 42 ? 2 : addrlen <= 63 ? 3 : 4) + 1;
 		const char **str = split_message((const uint8_t *)address, addrlen, rowlen);
 		if (desc) {
-			oledDrawString(0, 0 * 9, desc, FONT_STANDARD);
+			oledDrawString(0, 0 * 9, desc, FONT_STANDARD, OLED_WHITE);
 		}
 		for (int i = 0; i < 4; i++) {
-			oledDrawString(0, (i + 1) * 9 + 4, str[i], FONT_FIXED);
+			oledDrawString(0, (i + 1) * 9 + 4, str[i], FONT_FIXED, OLED_WHITE);
 		}
-		oledDrawString(0, 42, address_n_str(address_n, address_n_count), FONT_STANDARD);
+		oledDrawString(0, 42, address_n_str(address_n, address_n_count), FONT_STANDARD, OLED_WHITE);
 	}
 
 	if (!qrcode) {
