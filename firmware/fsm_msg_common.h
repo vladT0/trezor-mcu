@@ -1,3 +1,5 @@
+#include "resource.h"
+
 void fsm_msgInitialize(Initialize *msg)
 {
 	recovery_abort();
@@ -60,7 +62,7 @@ void fsm_msgPing(Ping *msg)
 	RESP_INIT(Success);
 
 	if (msg->has_button_protection && msg->button_protection) {
-		layoutDialogSwipe(&bmp_icon_question, _("Cancel"), _("Confirm"), NULL, _("Do you really want to"), _("answer to ping?"), NULL, NULL, NULL, NULL);
+		layoutDialogSwipe(&bmp_icon_question, _("Cancel"), _("Confirm"), NULL, _(do_you_want), _("answer to ping?"), NULL, NULL, NULL, NULL);
 		if (!protectButton(ButtonRequestType_ButtonRequest_ProtectCall, false)) {
 			fsm_sendFailure(FailureType_Failure_ActionCancelled, NULL);
 			layoutHome();
@@ -92,16 +94,16 @@ void fsm_msgChangePin(ChangePin *msg)
 	bool removal = msg->has_remove && msg->remove;
 	if (removal) {
 		if (storage_hasPin()) {
-			layoutDialogSwipe(&bmp_icon_question, _("Cancel"), _("Confirm"), NULL, _("Do you really want to"), _("remove current PIN?"), NULL, NULL, NULL, NULL);
+			layoutDialogSwipe(&bmp_icon_question, _("Cancel"), _("Confirm"), NULL, _(do_you_want), _("remove current PIN?"), NULL, NULL, NULL, NULL);
 		} else {
 			fsm_sendSuccess(_("PIN removed"));
 			return;
 		}
 	} else {
 		if (storage_hasPin()) {
-			layoutDialogSwipe(&bmp_icon_question, _("Cancel"), _("Confirm"), NULL, _("Do you really want to"), _("change current PIN?"), NULL, NULL, NULL, NULL);
+			layoutDialogSwipe(&bmp_icon_question, _("Cancel"), _("Confirm"), NULL, _(do_you_want), _("change current PIN?"), NULL, NULL, NULL, NULL);
 		} else {
-			layoutDialogSwipe(&bmp_icon_question, _("Cancel"), _("Confirm"), NULL, _("Do you really want to"), _("set new PIN?"), NULL, NULL, NULL, NULL);
+			layoutDialogSwipe(&bmp_icon_question, _("Cancel"), _("Confirm"), NULL, _(do_you_want), _("set new PIN?"), NULL, NULL, NULL, NULL);
 		}
 	}
 	if (!protectButton(ButtonRequestType_ButtonRequest_ProtectCall, false)) {
@@ -129,7 +131,7 @@ void fsm_msgChangePin(ChangePin *msg)
 void fsm_msgWipeDevice(WipeDevice *msg)
 {
 	(void)msg;
-	layoutDialogSwipe(&bmp_icon_question, _("Cancel"), _("Confirm"), NULL, _("Do you really want to"), _("wipe the device?"), NULL, _("All data will be lost."), NULL, NULL);
+	layoutDialogSwipe(&bmp_icon_question, _("Cancel"), _("Confirm"), NULL, _(do_you_want), _("wipe"), _("the device?"), _("All data will be lost."), NULL, NULL);
 	if (!protectButton(ButtonRequestType_ButtonRequest_WipeDevice, false)) {
 		fsm_sendFailure(FailureType_Failure_ActionCancelled, NULL);
 		layoutHome();
@@ -145,7 +147,7 @@ void fsm_msgWipeDevice(WipeDevice *msg)
 void fsm_msgGetEntropy(GetEntropy *msg)
 {
 #if !DEBUG_RNG
-	layoutDialogSwipe(&bmp_icon_question, _("Cancel"), _("Confirm"), NULL, _("Do you really want to"), _("send entropy?"), NULL, NULL, NULL, NULL);
+	layoutDialogSwipe(&bmp_icon_question, _("Cancel"), _("Confirm"), NULL, _(do_you_want), _("send entropy?"), NULL, NULL, NULL, NULL);
 	if (!protectButton(ButtonRequestType_ButtonRequest_ProtectCall, false)) {
 		fsm_sendFailure(FailureType_Failure_ActionCancelled, NULL);
 		layoutHome();
@@ -249,7 +251,7 @@ void fsm_msgApplySettings(ApplySettings *msg)
 	CHECK_PIN
 
 	if (msg->has_label) {
-		layoutDialogSwipe(&bmp_icon_question, _("Cancel"), _("Confirm"), NULL, _("Do you really want to"), _("change name to"), msg->label, "?", NULL, NULL);
+		layoutDialogSwipe(&bmp_icon_question, _("Cancel"), _("Confirm"), NULL, _(do_you_want), _("change name to"), msg->label, "?", NULL, NULL);
 		if (!protectButton(ButtonRequestType_ButtonRequest_ProtectCall, false)) {
 			fsm_sendFailure(FailureType_Failure_ActionCancelled, NULL);
 			layoutHome();
@@ -257,7 +259,7 @@ void fsm_msgApplySettings(ApplySettings *msg)
 		}
 	}
 	if (msg->has_language) {
-		layoutDialogSwipe(&bmp_icon_question, _("Cancel"), _("Confirm"), NULL, _("Do you really want to"), _("change language to"), msg->language, "?", NULL, NULL);
+		layoutDialogSwipe(&bmp_icon_question, _("Cancel"), _("Confirm"), NULL, _(do_you_want), _("change language to"), msg->language, "?", NULL, NULL);
 		if (!protectButton(ButtonRequestType_ButtonRequest_ProtectCall, false)) {
 			fsm_sendFailure(FailureType_Failure_ActionCancelled, NULL);
 			layoutHome();
@@ -265,7 +267,7 @@ void fsm_msgApplySettings(ApplySettings *msg)
 		}
 	}
 	if (msg->has_use_passphrase) {
-		layoutDialogSwipe(&bmp_icon_question, _("Cancel"), _("Confirm"), NULL, _("Do you really want to"), msg->use_passphrase ? _("enable passphrase") : _("disable passphrase"), _("protection?"), NULL, NULL, NULL);
+		layoutDialogSwipe(&bmp_icon_question, _("Cancel"), _("Confirm"), NULL, _(do_you_want), msg->use_passphrase ? _("enable passphrase") : _("disable passphrase"), _("protection?"), NULL, NULL, NULL);
 		if (!protectButton(ButtonRequestType_ButtonRequest_ProtectCall, false)) {
 			fsm_sendFailure(FailureType_Failure_ActionCancelled, NULL);
 			layoutHome();
@@ -273,7 +275,7 @@ void fsm_msgApplySettings(ApplySettings *msg)
 		}
 	}
 	if (msg->has_homescreen) {
-		layoutDialogSwipe(&bmp_icon_question, _("Cancel"), _("Confirm"), NULL, _("Do you really want to"), _("change the home"), _("screen?"), NULL, NULL, NULL);
+		layoutDialogSwipe(&bmp_icon_question, _("Cancel"), _("Confirm"), NULL, _(do_you_want), _("change the home"), _("screen?"), NULL, NULL, NULL);
 		if (!protectButton(ButtonRequestType_ButtonRequest_ProtectCall, false)) {
 			fsm_sendFailure(FailureType_Failure_ActionCancelled, NULL);
 			layoutHome();
@@ -282,7 +284,7 @@ void fsm_msgApplySettings(ApplySettings *msg)
 	}
 
 	if (msg->has_auto_lock_delay_ms) {
-		layoutDialogSwipe(&bmp_icon_question, _("Cancel"), _("Confirm"), NULL, _("Do you really want to"), _("change auto-lock"), _("delay?"), NULL, NULL, NULL);
+		layoutDialogSwipe(&bmp_icon_question, _("Cancel"), _("Confirm"), NULL, _(do_you_want), _("change auto-lock"), _("delay?"), NULL, NULL, NULL);
 		if (!protectButton(ButtonRequestType_ButtonRequest_ProtectCall, false)) {
 			fsm_sendFailure(FailureType_Failure_ActionCancelled, NULL);
 			layoutHome();
@@ -331,7 +333,7 @@ void fsm_msgRecoveryDevice(RecoveryDevice *msg)
 	CHECK_PARAM(!msg->has_word_count || msg->word_count == 12 || msg->word_count == 18 || msg->word_count == 24, _("Invalid word count"));
 
 	if (!dry_run) {
-		layoutDialogSwipe(&bmp_icon_question, _("Cancel"), _("Confirm"), NULL, _("Do you really want to"), _("recover the device?"), NULL, NULL, NULL, NULL);
+		layoutDialogSwipe(&bmp_icon_question, _("Cancel"), _("Confirm"), NULL, _(do_you_want), _("recover"), _("the device?"), NULL, NULL, NULL);
 		if (!protectButton(ButtonRequestType_ButtonRequest_ProtectCall, false)) {
 			fsm_sendFailure(FailureType_Failure_ActionCancelled, NULL);
 			layoutHome();

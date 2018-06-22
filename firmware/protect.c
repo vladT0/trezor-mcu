@@ -192,7 +192,7 @@ bool protectPin(bool use_cached)
 	}
 	usbTiny(0);
 	const char *pin;
-	pin = requestPin(PinMatrixRequestType_PinMatrixRequestType_Current, _("Please enter current PIN:"));
+	pin = requestPin(PinMatrixRequestType_PinMatrixRequestType_Current, _("Pls. enter current PIN:"));
 	if (!pin) {
 		fsm_sendFailure(FailureType_Failure_PinCancelled, NULL);
 		return false;
@@ -216,7 +216,7 @@ bool protectChangePin(void)
 {
 	static CONFIDENTIAL char pin_compare[17];
 
-	const char *pin = requestPin(PinMatrixRequestType_PinMatrixRequestType_NewFirst, _("Please enter new PIN:"));
+	const char *pin = requestPin(PinMatrixRequestType_PinMatrixRequestType_NewFirst, _("Pls. enter new PIN:"));
 
 	if (!pin) {
 		return false;
@@ -224,7 +224,7 @@ bool protectChangePin(void)
 
 	strlcpy(pin_compare, pin, sizeof(pin_compare));
 
-	pin = requestPin(PinMatrixRequestType_PinMatrixRequestType_NewSecond, _("Please re-enter new PIN:"));
+	pin = requestPin(PinMatrixRequestType_PinMatrixRequestType_NewSecond, _("Pls. re-enter new PIN:"));
 
 	const bool result = pin && (strncmp(pin_compare, pin, sizeof(pin_compare)) == 0);
 

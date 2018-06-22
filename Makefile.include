@@ -23,12 +23,13 @@ OBJCOPY  := $(PREFIX)objcopy
 OBJDUMP  := $(PREFIX)objdump
 AR       := $(PREFIX)ar
 AS       := $(PREFIX)as
-OPENOCD  := openocd -f interface/stlink-v2.cfg -c "transport select hla_swd" -f target/stm32f2x.cfg
+OPENOCD  := openocd -f interface/stlink-v2.cfg -c "transport select hla_swd" -f target/stm32f4x.cfg
 
 OPTFLAGS ?= -O3
 DBGFLAGS ?= -g -DNDEBUG
-CPUFLAGS ?= -mcpu=cortex-m3 -mthumb
-FPUFLAGS ?= -msoft-float
+CPUFLAGS ?= -mcpu=cortex-m4 -mthumb
+#FPUFLAGS ?= -msoft-float
+FPUFLAGS ?= -mfloat-abi=hard -mfpu=fpv4-sp-d16
 endif
 
 CFLAGS   += $(OPTFLAGS) \
@@ -60,7 +61,7 @@ CFLAGS   += $(OPTFLAGS) \
             -fstack-protector-all \
             $(CPUFLAGS) \
             $(FPUFLAGS) \
-            -DSTM32F2 \
+            -DSTM32F4 \
             -DCONFIDENTIAL='__attribute__((section("confidential")))' \
             -DRAND_PLATFORM_INDEPENDENT=1 \
             -I$(TOOLCHAIN_DIR)/include \
@@ -118,8 +119,8 @@ LDFLAGS  += --static \
 LDLIBS   += -ltrezor
 LIBDEPS  += $(TOP_DIR)/libtrezor.a
 
-LDLIBS   += -lopencm3_stm32f2
-LIBDEPS  += $(TOOLCHAIN_DIR)/lib/libopencm3_stm32f2.a
+LDLIBS   += -lopencm3_stm32f4
+LIBDEPS  += $(TOOLCHAIN_DIR)/lib/libopencm3_stm32f4.a
 endif
 
 ifeq ($(MEMORY_PROTECT), 0)

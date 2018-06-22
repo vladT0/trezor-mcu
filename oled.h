@@ -26,9 +26,29 @@
 #include "bitmaps.h"
 #include "fonts.h"
 
-#define OLED_WIDTH   128
+#define OLED_WIDTH   96
 #define OLED_HEIGHT  64
-#define OLED_BUFSIZE (OLED_WIDTH * OLED_HEIGHT / 8)
+
+// OLED Color definitions
+#define	BLACK           0x0000
+#define	BLUE            0x001F
+#define	RED             0xF800
+#define	GREEN           0x07E0
+#define CYAN            0x07FF
+#define MAGENTA         0xF81F
+#define YELLOW          0xFFE0
+#define WHITE           0xFFFF
+
+// OLED palette colors.
+#define OLED_BLACK 	(0x00)
+#define OLED_YELLOW	(0x01)
+#define	OLED_RED	(0x02)
+#define OLED_CYAN	(0x03)
+#define OLED_WHITE 	(0x0F)
+
+// To fit in 4KB of SRAM, use 4 bits per pixel, to
+// map to up to 16 colors defined above. So, 2px per byte.
+#define OLED_BUF_SIZE ((96 * 64) / 2)
 
 void oledInit(void);
 void oledClear(void);
@@ -39,18 +59,18 @@ void oledInvertDebugLink(void);
 
 void oledSetBuffer(uint8_t *buf);
 const uint8_t *oledGetBuffer(void);
-void oledDrawPixel(int x, int y);
+
+void oledDrawPixel(int x, int y,uint8_t color);
 void oledClearPixel(int x, int y);
 void oledInvertPixel(int x, int y);
-void oledDrawChar(int x, int y, char c, int zoom);
-int oledStringWidth(const char *text, int font);
-
-void oledDrawString(int x, int y, const char* text, int font);
+void oledDrawChar(int x, int y, char c, int zoom, uint8_t color);
+int  oledStringWidth(const char *text, int font);
+void oledDrawString(int x, int y, const char* text, int font, uint8_t color);
 void oledDrawStringCenter(int y, const char* text, int font);
 void oledDrawStringRight(int x, int y, const char* text, int font);
-void oledDrawBitmap(int x, int y, const BITMAP *bmp);
+void oledDrawBitmap(int x, int y, const BITMAP *bmp,uint8_t color);
 void oledInvert(int x1, int y1, int x2, int y2);
-void oledBox(int x1, int y1, int x2, int y2, bool set);
+void oledBox(int x1, int y1, int x2, int y2, bool set, uint8_t color);
 void oledHLine(int y);
 void oledFrame(int x1, int y1, int x2, int y2);
 void oledSwipeLeft(void);

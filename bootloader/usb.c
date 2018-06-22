@@ -36,6 +36,7 @@
 #include "ecdsa.h"
 #include "secp256k1.h"
 #include "memzero.h"
+#include "resource.h"
 
 #define FIRMWARE_MAGIC "TRZR"
 
@@ -352,7 +353,7 @@ static void hid_rx_callback(usbd_device *dev, uint8_t ep)
 			return;
 		}
 		if (msg_id == 0x0005) {		// WipeDevice message (id 5)
-			layoutDialog(&bmp_icon_question, "Cancel", "Confirm", NULL, "Do you really want to", "wipe the device?", NULL, "All data will be lost.", NULL, NULL);
+			layoutDialog(&bmp_icon_question, "Cancel", "Confirm", NULL, do_you_want, "wipe the device?", NULL, "All data will be lost.", NULL, NULL);
 			do {
 				delay(100000);
 				buttonUpdate();
@@ -699,10 +700,10 @@ void checkButtons(void)
 		}
 	}
 	if (btn_left) {
-		oledBox(0, 0, 3, 3, true);
+		oledBox(0, 0, 3, 3, true,OLED_WHITE);
 	}
 	if (btn_right) {
-		oledBox(OLED_WIDTH - 4, 0, OLED_WIDTH - 1, 3, true);
+		oledBox(OLED_WIDTH - 4, 0, OLED_WIDTH - 1, 3, true, OLED_WHITE);
 	}
 	if (btn_left || btn_right) {
 		oledRefresh();

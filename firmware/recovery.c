@@ -274,7 +274,7 @@ static void display_choices(bool twoColumn, char choices[9][12], int num)
 		format_number(desc, nr);
 		layoutDialogSwipe(&bmp_icon_info, NULL, NULL, NULL, _("Please enter the"), (nr < 10 ? desc + 1 : desc), _("of your mnemonic"), NULL, NULL, NULL);
 	} else {
-		oledBox(0, 27, 127, 63, false);
+		oledBox(0, 27, 127, 63, false, OLED_WHITE);
 	}
 
 	for (int row = 0; row < 3; row ++) {
@@ -283,7 +283,7 @@ static void display_choices(bool twoColumn, char choices[9][12], int num)
 			int x = twoColumn ? 64 * col + 32 : 42 * col + 22;
 			int choice = word_matrix[nColumns*row + col];
 			const char *text = choice < num ? choices[choice] : "-";
-			oledDrawString(x - oledStringWidth(text, FONT_STANDARD)/2, y, text, FONT_STANDARD);
+			oledDrawString(x - oledStringWidth(text, FONT_STANDARD)/2, y, text, FONT_STANDARD, OLED_WHITE);
 			if (twoColumn) {
 				oledInvert(x - 32 + 1, y - 1, x - 32 + 63 - 1, y + 8);
 			} else {

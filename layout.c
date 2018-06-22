@@ -24,14 +24,14 @@
 
 void layoutButtonNo(const char *btnNo)
 {
-	oledDrawString(1, OLED_HEIGHT - 8, "\x15", FONT_STANDARD);
-	oledDrawString(fontCharWidth(FONT_STANDARD, '\x15') + 3, OLED_HEIGHT - 8, btnNo, FONT_STANDARD);
+	oledDrawString(1, OLED_HEIGHT - 8, "\x15", FONT_STANDARD, OLED_WHITE);
+	oledDrawString(fontCharWidth(FONT_STANDARD, '\x15') + 3, OLED_HEIGHT - 8, btnNo, FONT_STANDARD, OLED_WHITE);
 	oledInvert(0, OLED_HEIGHT - 9, fontCharWidth(FONT_STANDARD, '\x15') + oledStringWidth(btnNo, FONT_STANDARD) + 2, OLED_HEIGHT - 1);
 }
 
 void layoutButtonYes(const char *btnYes)
 {
-	oledDrawString(OLED_WIDTH - fontCharWidth(FONT_STANDARD, '\x06') - 1, OLED_HEIGHT - 8, "\x06", FONT_STANDARD);
+	oledDrawString(OLED_WIDTH - fontCharWidth(FONT_STANDARD, '\x06') - 1, OLED_HEIGHT - 8, "\x06", FONT_STANDARD, OLED_WHITE);
 	oledDrawStringRight(OLED_WIDTH - fontCharWidth(FONT_STANDARD, '\x06') - 3, OLED_HEIGHT - 8, btnYes, FONT_STANDARD);
 	oledInvert(OLED_WIDTH - oledStringWidth(btnYes, FONT_STANDARD) - fontCharWidth(FONT_STANDARD, '\x06') - 4, OLED_HEIGHT - 9, OLED_WIDTH - 1, OLED_HEIGHT - 1);
 }
@@ -41,21 +41,22 @@ void layoutDialog(const BITMAP *icon, const char *btnNo, const char *btnYes, con
 	int left = 0;
 	oledClear();
 	if (icon) {
-		oledDrawBitmap(0, 0, icon);
-		left = icon->width + 4;
+		oledDrawBitmap(0, 0, icon, OLED_RED);
+		left = icon->width + 2;
 	}
-	if (line1) oledDrawString(left, 0 * 9, line1, FONT_STANDARD);
-	if (line2) oledDrawString(left, 1 * 9, line2, FONT_STANDARD);
-	if (line3) oledDrawString(left, 2 * 9, line3, FONT_STANDARD);
-	if (line4) oledDrawString(left, 3 * 9, line4, FONT_STANDARD);
+	if (line1) oledDrawString(left, 0 * 9, line1, FONT_STANDARD, OLED_WHITE);
+	if (line2) oledDrawString(left, 1 * 9, line2, FONT_STANDARD, OLED_WHITE);
+	left = 2;
+	if (line3) oledDrawString(left, 2 * 9, line3, FONT_STANDARD, OLED_WHITE);
+	if (line4) oledDrawString(left, 3 * 9, line4, FONT_STANDARD, OLED_WHITE);
 	if (desc) {
 		oledDrawStringCenter(OLED_HEIGHT - 2 * 9 - 1, desc, FONT_STANDARD);
 		if (btnYes || btnNo) {
 			oledHLine(OLED_HEIGHT - 21);
 		}
 	} else {
-		if (line5) oledDrawString(left, 4 * 9, line5, FONT_STANDARD);
-		if (line6) oledDrawString(left, 5 * 9, line6, FONT_STANDARD);
+		if (line5) oledDrawString(left, 4 * 9, line5, FONT_STANDARD, OLED_WHITE);
+		if (line6) oledDrawString(left, 5 * 9, line6, FONT_STANDARD, OLED_WHITE);
 		if (btnYes || btnNo) {
 			oledHLine(OLED_HEIGHT - 13);
 		}
@@ -72,24 +73,11 @@ void layoutDialog(const BITMAP *icon, const char *btnNo, const char *btnYes, con
 void layoutProgressUpdate(bool refresh)
 {
 	static uint8_t step = 0;
-	switch (step) {
-		case 0:
-			oledDrawBitmap(40, 0, &bmp_gears0);
-			break;
-		case 1:
-			oledDrawBitmap(40, 0, &bmp_gears1);
-			break;
-		case 2:
-			oledDrawBitmap(40, 0, &bmp_gears2);
-			break;
-		case 3:
-			oledDrawBitmap(40, 0, &bmp_gears3);
-			break;
-	}
+	const BITMAP *bmp_gears[4] = {&bmp_gears0,&bmp_gears1,&bmp_gears2,&bmp_gears3};
+	oledDrawBitmap(40, 0, bmp_gears[step], OLED_WHITE);
 	step = (step + 1) % 4;
-	if (refresh) {
+	if (refresh)
 		oledRefresh();
-	}
 }
 
 void layoutProgress(const char *desc, int permil)
@@ -98,7 +86,7 @@ void layoutProgress(const char *desc, int permil)
 	layoutProgressUpdate(false);
 	// progressbar
 	oledFrame(0, OLED_HEIGHT - 8, OLED_WIDTH - 1, OLED_HEIGHT - 1);
-	oledBox(1, OLED_HEIGHT - 7, OLED_WIDTH - 2, OLED_HEIGHT - 2, 0);
+	oledBox(1, OLED_HEIGHT - 7, OLED_WIDTH - 2, OLED_HEIGHT - 2, 0, OLED_WHITE);
 	permil = permil * (OLED_WIDTH - 4) / 1000;
 	if (permil < 0) {
 		permil = 0;
@@ -106,9 +94,9 @@ void layoutProgress(const char *desc, int permil)
 	if (permil > OLED_WIDTH - 4) {
 		permil = OLED_WIDTH - 4;
 	}
-	oledBox(2, OLED_HEIGHT - 6, 1 + permil, OLED_HEIGHT - 3, 1);
+	oledBox(2, OLED_HEIGHT - 6, 1 + permil, OLED_HEIGHT - 3, 1, OLED_WHITE);
 	// text
-	oledBox(0, OLED_HEIGHT - 16, OLED_WIDTH - 1, OLED_HEIGHT - 16 + 7, 0);
+	oledBox(0, OLED_HEIGHT - 16, OLED_WIDTH - 1, OLED_HEIGHT - 16 + 7, 0, OLED_WHITE);
 	if (desc) {
 		oledDrawStringCenter(OLED_HEIGHT - 16, desc, FONT_STANDARD);
 	}

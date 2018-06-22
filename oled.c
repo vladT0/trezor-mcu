@@ -25,33 +25,11 @@
 #include "oled.h"
 #include "util.h"
 
-#define OLED_SETCONTRAST		0x81
-#define OLED_DISPLAYALLON_RESUME	0xA4
-#define OLED_DISPLAYALLON		0xA5
-#define OLED_NORMALDISPLAY		0xA6
-#define OLED_INVERTDISPLAY		0xA7
-#define OLED_DISPLAYOFF			0xAE
-#define OLED_DISPLAYON			0xAF
-#define OLED_SETDISPLAYOFFSET		0xD3
-#define OLED_SETCOMPINS			0xDA
-#define OLED_SETVCOMDETECT		0xDB
-#define OLED_SETDISPLAYCLOCKDIV		0xD5
-#define OLED_SETPRECHARGE		0xD9
-#define OLED_SETMULTIPLEX		0xA8
-#define OLED_SETLOWCOLUMN		0x00
-#define OLED_SETHIGHCOLUMN		0x10
-#define OLED_SETSTARTLINE		0x40
-#define OLED_MEMORYMODE			0x20
-#define OLED_COMSCANINC			0xC0
-#define OLED_COMSCANDEC			0xC8
-#define OLED_SEGREMAP			0xA0
-#define OLED_CHARGEPUMP			0x8D
-
-#define SPI_BASE			SPI1
+#define SPI_BASE				SPI1
 #define OLED_DC_PORT			GPIOB
-#define OLED_DC_PIN			GPIO0	// PB0 | Data/Command
+#define OLED_DC_PIN				GPIO0	// PB0 | Data/Command
 #define OLED_CS_PORT			GPIOA
-#define OLED_CS_PIN			GPIO4	// PA4 | SPI Select
+#define OLED_CS_PIN				GPIO4	// PA4 | SPI Select
 #define OLED_RST_PORT			GPIOB
 #define OLED_RST_PIN			GPIO1	// PB1 | Reset display
 
@@ -63,24 +41,38 @@
  * display.
  */
 
-static uint8_t _oledbuffer[OLED_BUFSIZE];
 static bool is_debug_link = 0;
+static uint8_t oled_buffer[OLED_BUF_SIZE]; //color buffer
+static uint8_t oled_pixels[4];
+
+// Color palette.
+static uint16_t oled_colors[16] = {
+  0x0000, 0xFFE0, 0xF800, 0x07FF,
+  0x0000, 0x0000, 0x0000, 0x0000,
+  0x0000, 0x0000, 0x0000, 0x0000,
+  0x0000, 0x0000, 0x0000, 0xFFFF
+};
 
 /*
- * macros to convert coordinate to bit position
+ * macros to convert coordinate to half byte position
  */
-#define OLED_OFFSET(x, y) (OLED_BUFSIZE - 1 - (x) - ((y)/8)*OLED_WIDTH)
-#define OLED_MASK(x, y)   (1 << (7 - (y) % 8))
+
+#define OLED_OFFSET(x, y) (x/2) + (y*OLED_WIDTH)/2
 
 /*
  * Draws a white pixel at x, y
  */
-void oledDrawPixel(int x, int y)
+
+void oledDrawPixel(int x, int y, uint8_t color)
 {
+	uint8_t *cell;
+
 	if ((x < 0) || (y < 0) || (x >= OLED_WIDTH) || (y >= OLED_HEIGHT)) {
 		return;
 	}
-	_oledbuffer[OLED_OFFSET(x, y)] |= OLED_MASK(x, y);
+
+	cell = &oled_buffer[OLED_OFFSET(x, y)];
+	*cell = (*cell & (0x0F<<4*((x%2)))) | (color << 4*((x%2)^0x1));
 }
 
 /*
@@ -88,10 +80,14 @@ void oledDrawPixel(int x, int y)
  */
 void oledClearPixel(int x, int y)
 {
+	uint8_t *cell;
+
 	if ((x < 0) || (y < 0) || (x >= OLED_WIDTH) || (y >= OLED_HEIGHT)) {
 		return;
 	}
-	_oledbuffer[OLED_OFFSET(x, y)] &= ~OLED_MASK(x, y);
+
+	cell = &oled_buffer[OLED_OFFSET(x, y)];
+	*cell = *cell & (0x0F<<4*((x%2)));
 }
 
 /*
@@ -99,10 +95,14 @@ void oledClearPixel(int x, int y)
  */
 void oledInvertPixel(int x, int y)
 {
+	uint8_t *cell;
+
 	if ((x < 0) || (y < 0) || (x >= OLED_WIDTH) || (y >= OLED_HEIGHT)) {
 		return;
 	}
-	_oledbuffer[OLED_OFFSET(x, y)] ^= OLED_MASK(x, y);
+
+	cell = &oled_buffer[OLED_OFFSET(x, y)];
+	*cell = *cell ^ (0x0F<<4*((x%2)));
 }
 
 #if !EMULATOR
@@ -124,32 +124,97 @@ static inline void SPISend(uint32_t base, const uint8_t *data, int len)
  */
 void oledInit()
 {
-	static const uint8_t s[25] = {
-		OLED_DISPLAYOFF,
-		OLED_SETDISPLAYCLOCKDIV,
+        static const uint8_t s[46] = {
+
+	// 'Unlock Display.' - 0xFD/0x16 can 'Lock' it,
+	// in which case all other commands are ignored.
+		0xFD,
+		0x12,
+  	// (Turn the display off.)
+		0xAE,
+  	// 'Set Column Address' - default is 0-95, which is
+  	// also what we want.
+		0x15,
+		0x00,
+		0x5F,
+  	// 'Set Row Address' - default is 0-63, which is good.
+		0x75,
+		0x00,
+		0x3F,
+  	// 'Set Color A Contrast' - default is 128.
+		0x81,
 		0x80,
-		OLED_SETMULTIPLEX,
-		0x3F, // 128x64
-		OLED_SETDISPLAYOFFSET,
+  	// 'Set Color B Contrast' - default is 128, use 96.
+		0x82,
+		0x60,
+  	// 'Set Color C Contrast' - default is 128.
+		0x83,
+		0x80,
+  	// 'Set Master Current Control' - default is 15, but
+  	// use 8 for ~half. (~= 'Set Brightness')
+		0x87,
+		0x08,
+  	// 'Set Precharge A' - default is 'Color A Contrast'.
+		0x8A,
+		0x80,
+  	// 'Set Precharge B' - default is 'Color B Contrast'.
+		0x8B,
+		0x60,
+  	// 'Set Precharge C' - default is 'Color C Contrast'.
+		0x8C,
+		0x80,
+  	// 'Remap Display Settings' - default is 0x40.
+  	// Use 0x60 to avoid drawing lines in odd-even order.
+		0xA0,
+		0x60,
+  	// 'Set Display Start Row' - default is 0.
+		0xA1,
 		0x00,
-		OLED_SETSTARTLINE | 0x00,
-		OLED_CHARGEPUMP,
-		0x14,
-		OLED_MEMORYMODE,
+  	// 'Set Vertical Offset' - default is 0.
+		0xA2,
 		0x00,
-		OLED_SEGREMAP | 0x01,
-		OLED_COMSCANDEC,
-		OLED_SETCOMPINS,
-		0x12, // 128x64
-		OLED_SETCONTRAST,
-		0xCF,
-		OLED_SETPRECHARGE,
-		0xF1,
-		OLED_SETVCOMDETECT,
-		0x40,
-		OLED_DISPLAYALLON_RESUME,
-		OLED_NORMALDISPLAY,
-		OLED_DISPLAYON
+  	// 'Set Display Mode' - default is 'A4'. 'A7' = invert.
+  	// (The actual command byte sets the mode; no 'arg')
+		0xA4,
+  	// 'Set Multiplex Ratio.' I think this is how many
+  	// rows of pixels are actually enabled; default is 63.
+		0xA8,
+		0x3F,
+  	// (I am going to ignore the 0xAB 'Dim Mode Settings'
+  	// command - it looks like it only matters if we use
+  	// the 0xAC 'Dim Display' command; we will use 0xAF.)
+  	// 'Set Voltage Supply Configuration'. The SSD1331 has
+  	// no onboard charge pump, so we must use external
+  	// voltage. (0x8E)
+		0xAB,
+		0x8E,
+  	// 'Set Power Save Mode'. Default enabled; disable it.
+  	// ('on' is 0x1A, 'off' is 0x0B)
+		0xB0,
+		0x0B,
+  	// 'Adjust Precharge Phases.' Bits [7:4] set the
+  	// precharge stage 2 period, bits [3:0] set phase 1.
+  	// Default is 0x74.
+		0xB1,
+		0x74,
+  	// 'Set Clock Divider Frequency'. Bits [7:4] set the
+  	// oscillator frequency, bits [3:0]+1 set the
+  	// clock division ratio. Default is 0xD0.
+		0xB3,
+		0xD0,
+  	// (I am going to ignore the 'Set Grayscale Table'
+  	// command - it has a bunch of gamma curve settings.)
+  	// So, the 'Reset to Default Grayscale Table'
+  	// command does make sense to call.
+		0xB9,
+  	// 'Set Precharge Level'. Default is 0x3E.
+		0xBB,
+		0x3E,
+  	// 'Set Logic 0 Threshold'. Default is 0x3E = 0.83*VCC.
+		0xBE,
+		0x3E,
+  	// 'Display On'.
+		0xAF
 	};
 
 	gpio_clear(OLED_DC_PORT, OLED_DC_PIN);		// set to CMD
@@ -164,7 +229,7 @@ void oledInit()
 
 	// init
 	gpio_clear(OLED_CS_PORT, OLED_CS_PIN);		// SPI select
-	SPISend(SPI_BASE, s, 25);
+	SPISend(SPI_BASE, s, 46);
 	gpio_set(OLED_CS_PORT, OLED_CS_PIN);		// SPI deselect
 
 	oledClear();
@@ -177,7 +242,7 @@ void oledInit()
  */
 void oledClear()
 {
-	memset(_oledbuffer, 0, sizeof(_oledbuffer));
+	memset(oled_buffer, 0, sizeof(oled_buffer));
 }
 
 void oledInvertDebugLink()
@@ -200,18 +265,49 @@ void oledInvertDebugLink()
 #if !EMULATOR
 void oledRefresh()
 {
-	static const uint8_t s[3] = {OLED_SETLOWCOLUMN | 0x00, OLED_SETHIGHCOLUMN | 0x00, OLED_SETSTARTLINE | 0x00};
+	static const uint8_t s[10] =
+	{
+        // 'Set Column Address' - default is 0-95, which is
+        // also what we want.
+                0x15,
+                0x00,
+                0x5F,
+        // 'Set Row Address' - default is 0-63, which is good.
+                0x75,
+                0x00,
+                0x3F,
+        // 'Set Display Start Row' - default is 0.
+                0xA1,
+                0x00,
+	// 'Set Display Offset' - default is 0.
+		0xA2,
+		0x00
+	};
+
+ 	uint16_t px_i = 0;
+ 	uint8_t px_col = 0;
 
 	// draw triangle in upper right corner
 	oledInvertDebugLink();
 
 	gpio_clear(OLED_CS_PORT, OLED_CS_PIN);		// SPI select
-	SPISend(SPI_BASE, s, 3);
+	SPISend(SPI_BASE, s, 10);
 	gpio_set(OLED_CS_PORT, OLED_CS_PIN);		// SPI deselect
 
 	gpio_set(OLED_DC_PORT, OLED_DC_PIN);		// set to DATA
 	gpio_clear(OLED_CS_PORT, OLED_CS_PIN);		// SPI select
-	SPISend(SPI_BASE, _oledbuffer, sizeof(_oledbuffer));
+
+
+  	for (px_i = 0; px_i < OLED_BUF_SIZE; ++px_i) {
+      		px_col = oled_buffer[px_i] >> 4;
+      		oled_pixels[0] = ((uint8_t*)&(oled_colors[px_col]))[1];
+      		oled_pixels[1] = ((uint8_t*)&(oled_colors[px_col]))[0];
+      		px_col = oled_buffer[px_i] & 0x0F;
+      		oled_pixels[2] = ((uint8_t*)&(oled_colors[px_col]))[1];
+      		oled_pixels[3] = ((uint8_t*)&(oled_colors[px_col]))[0];
+  	        SPISend(SPI_BASE,oled_pixels,4);
+	}
+
 	gpio_set(OLED_CS_PORT, OLED_CS_PIN);		// SPI deselect
 	gpio_clear(OLED_DC_PORT, OLED_DC_PIN);		// set to CMD
 
@@ -222,7 +318,7 @@ void oledRefresh()
 
 const uint8_t *oledGetBuffer()
 {
-	return _oledbuffer;
+	return oled_buffer;
 }
 
 void oledSetDebugLink(bool set)
@@ -233,10 +329,10 @@ void oledSetDebugLink(bool set)
 
 void oledSetBuffer(uint8_t *buf)
 {
-	memcpy(_oledbuffer, buf, sizeof(_oledbuffer));
+	memcpy(oled_buffer, buf, sizeof(oled_buffer));
 }
 
-void oledDrawChar(int x, int y, char c, int font)
+void oledDrawChar(int x, int y, char c, int font, uint8_t color)
 {
 	if (x >= OLED_WIDTH || y >= OLED_HEIGHT || y <= -FONT_HEIGHT) {
 		return;
@@ -254,9 +350,9 @@ void oledDrawChar(int x, int y, char c, int font)
 		for (int yo = 0; yo < FONT_HEIGHT; yo++) {
 			if (char_data[xo] & (1 << (FONT_HEIGHT - 1 - yo))) {
 				if (zoom <= 1) {
-					oledDrawPixel(x + xo, y + yo);
+					oledDrawPixel(x + xo, y + yo, color);
 				} else {
-					oledBox(x + xo * zoom, y + yo * zoom, x + (xo + 1) * zoom - 1, y + (yo + 1) * zoom - 1, true);
+					oledBox(x + xo * zoom, y + yo * zoom, x + (xo + 1) * zoom - 1, y + (yo + 1) * zoom - 1, true, color);
 				}
 			}
 		}
@@ -286,7 +382,7 @@ int oledStringWidth(const char *text, int font) {
 	return l;
 }
 
-void oledDrawString(int x, int y, const char* text, int font)
+void oledDrawString(int x, int y, const char* text, int font, uint8_t color)
 {
 	if (!text) return;
 	int l = 0;
@@ -294,7 +390,7 @@ void oledDrawString(int x, int y, const char* text, int font)
 	for (; *text; text++) {
 		char c = oledConvertChar(*text);
 		if (c) {
-			oledDrawChar(x + l, y, c, font);
+			oledDrawChar(x + l, y, c, font,color);
 			l += size * (fontCharWidth(font & 0x7f, c) + 1);
 		}
 	}
@@ -303,21 +399,21 @@ void oledDrawString(int x, int y, const char* text, int font)
 void oledDrawStringCenter(int y, const char* text, int font)
 {
 	int x = ( OLED_WIDTH - oledStringWidth(text, font) ) / 2;
-	oledDrawString(x, y, text, font);
+	oledDrawString(x, y, text, font, OLED_WHITE);
 }
 
 void oledDrawStringRight(int x, int y, const char* text, int font)
 {
 	x -= oledStringWidth(text, font);
-	oledDrawString(x, y, text, font);
+	oledDrawString(x, y, text, font, OLED_WHITE);
 }
 
-void oledDrawBitmap(int x, int y, const BITMAP *bmp)
+void oledDrawBitmap(int x, int y, const BITMAP *bmp, uint8_t color)
 {
 	for (int i = 0; i < bmp->width; i++) {
 		for (int j = 0; j < bmp->height; j++) {
 			if (bmp->data[(i / 8) + j * bmp->width / 8] & (1 << (7 - i % 8))) {
-				oledDrawPixel(x + i, y + j);
+				oledDrawPixel(x + i, y + j, color);
 			} else {
 				oledClearPixel(x + i, y + j);
 			}
@@ -344,7 +440,7 @@ void oledInvert(int x1, int y1, int x2, int y2)
 /*
  * Draw a filled rectangle.
  */
-void oledBox(int x1, int y1, int x2, int y2, bool set)
+void oledBox(int x1, int y1, int x2, int y2, bool set, uint8_t color)
 {
 	x1 = MAX(x1, 0);
 	y1 = MAX(y1, 0);
@@ -352,7 +448,7 @@ void oledBox(int x1, int y1, int x2, int y2, bool set)
 	y2 = MIN(y2, OLED_HEIGHT - 1);
 	for (int x = x1; x <= x2; x++) {
 		for (int y = y1; y <= y2; y++) {
-			set ? oledDrawPixel(x, y) : oledClearPixel(x, y);
+			set ? oledDrawPixel(x, y, color) : oledClearPixel(x, y);
 		}
 	}
 }
@@ -362,7 +458,7 @@ void oledHLine(int y) {
 		return;
 	}
 	for (int x = 0; x < OLED_WIDTH; x++) {
-		oledDrawPixel(x, y);
+		oledDrawPixel(x, y, OLED_WHITE);
 	}
 }
 
@@ -372,12 +468,41 @@ void oledHLine(int y) {
 void oledFrame(int x1, int y1, int x2, int y2)
 {
 	for (int x = x1; x <= x2; x++) {
-		oledDrawPixel(x, y1);
-		oledDrawPixel(x, y2);
+		oledDrawPixel(x, y1, OLED_WHITE);
+		oledDrawPixel(x, y2, OLED_WHITE);
 	}
 	for (int y = y1 + 1; y < y2; y++) {
-		oledDrawPixel(x1, y);
-		oledDrawPixel(x2, y);
+		oledDrawPixel(x1, y, OLED_WHITE);
+		oledDrawPixel(x2, y, OLED_WHITE);
+	}
+}
+
+void ShiftLeftHalfByte(uint8_t *array, int len)
+{
+    for (int i = 0;  i < len;  i++)
+    {
+        if (i <= (len - 1))
+        {
+            array[i]  = array[i] << 4;
+            if (i != (len - 1))
+            	array[i] |= array[i + 1] >> 4;
+        }
+        else
+        	array[i] = 0;
+    }
+}
+
+void ShiftRightHalfByte(uint8_t *array, int len)
+{
+	uint8_t bits1,bits2;
+	for(int i = len-1; i >= 0; --i)
+	{
+		bits1 = (array[i] & 0xF0) >> 4;
+		if(i)
+			bits2 = (array[i-1] & 0x0F) << 4;
+		else
+			bits2 = 0;
+		array[i] = bits1 | bits2;
 	}
 }
 
@@ -388,13 +513,12 @@ void oledFrame(int x1, int y1, int x2, int y2)
 void oledSwipeLeft(void)
 {
 	for (int i = 0; i < OLED_WIDTH; i++) {
-		for (int j = 0; j < OLED_HEIGHT / 8; j++) {
-			for (int k = OLED_WIDTH-1; k > 0; k--) {
-				_oledbuffer[j * OLED_WIDTH + k] = _oledbuffer[j * OLED_WIDTH + k - 1];
-			}
-			_oledbuffer[j * OLED_WIDTH] = 0;
+		for (int y = 0; y < OLED_HEIGHT; y++) {
+			uint8_t *in = &(oled_buffer[OLED_WIDTH/2*y]);
+			ShiftLeftHalfByte(in,OLED_WIDTH/2);
 		}
 		oledRefresh();
+		delay(50000);
 	}
 }
 
@@ -404,19 +528,12 @@ void oledSwipeLeft(void)
  */
 void oledSwipeRight(void)
 {
-	for (int i = 0; i < OLED_WIDTH / 4; i++) {
-		for (int j = 0; j < OLED_HEIGHT / 8; j++) {
-			for (int k = 0; k < OLED_WIDTH / 4 - 1; k++) {
-				_oledbuffer[k * 4 + 0 + j * OLED_WIDTH] = _oledbuffer[k * 4 + 4 + j * OLED_WIDTH];
-				_oledbuffer[k * 4 + 1 + j * OLED_WIDTH] = _oledbuffer[k * 4 + 5 + j * OLED_WIDTH];
-				_oledbuffer[k * 4 + 2 + j * OLED_WIDTH] = _oledbuffer[k * 4 + 6 + j * OLED_WIDTH];
-				_oledbuffer[k * 4 + 3 + j * OLED_WIDTH] = _oledbuffer[k * 4 + 7 + j * OLED_WIDTH];
-			}
-			_oledbuffer[j * OLED_WIDTH + OLED_WIDTH - 1] = 0;
-			_oledbuffer[j * OLED_WIDTH + OLED_WIDTH - 2] = 0;
-			_oledbuffer[j * OLED_WIDTH + OLED_WIDTH - 3] = 0;
-			_oledbuffer[j * OLED_WIDTH + OLED_WIDTH - 4] = 0;
+	for (int i = 0; i < OLED_WIDTH; i++) {
+		for (int y = 0; y < OLED_HEIGHT; y++) {
+			uint8_t *in = &(oled_buffer[OLED_WIDTH/2*y]);
+			ShiftRightHalfByte(in,OLED_WIDTH/2);
 		}
 		oledRefresh();
+		delay(50000);
 	}
 }

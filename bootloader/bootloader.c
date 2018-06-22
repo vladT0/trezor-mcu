@@ -41,18 +41,18 @@ void layoutFirmwareHash(const uint8_t *hash)
 	for (int i = 0; i < 4; i++) {
 		data2hex(hash + i * 8, 8, str[i]);
 	}
-	layoutDialog(&bmp_icon_question, "Abort", "Continue", "Compare fingerprints", str[0], str[1], str[2], str[3], NULL, NULL);
+	layoutDialog(&bmp_icon_question, "Abort", "Continue", "Comp. fingerprints", str[0], str[1], str[2], str[3], NULL, NULL);
 }
 
 void show_halt(void)
 {
-	layoutDialog(&bmp_icon_error, NULL, NULL, NULL, "Unofficial firmware", "aborted.", NULL, "Unplug your TREZOR", "contact our support.", NULL);
+	layoutDialog(&bmp_icon_error, NULL, NULL, NULL, "Unofficial fw.", "aborted.", NULL, "Unplug TREZOR", "contact support.", NULL);
 	shutdown();
 }
 
 void show_unofficial_warning(const uint8_t *hash)
 {
-	layoutDialog(&bmp_icon_warning, "Abort", "I'll take the risk", NULL, "WARNING!", NULL, "Unofficial firmware", "detected.", NULL, NULL);
+	layoutDialog(&bmp_icon_warning, "Abort", "Continue", NULL, "WARNING!", NULL, "Unofficial fw.", "detected.", NULL, NULL);
 
 	do {
 		delay(100000);
@@ -104,20 +104,20 @@ bool firmware_present(void)
 void bootloader_loop(void)
 {
 	oledClear();
-	oledDrawBitmap(0, 0, &bmp_logo64);
+	oledDrawBitmap(0, 0, &bmp_logo48, OLED_YELLOW);
 	if (firmware_present()) {
-		oledDrawString(52, 0, "TREZOR", FONT_STANDARD);
+		oledDrawString(52, 0, "TREZOR", FONT_STANDARD, OLED_WHITE);
 		static char serial[25];
 		fill_serialno_fixed(serial);
-		oledDrawString(52, 20, "Serial No.", FONT_STANDARD);
-		oledDrawString(52, 40, serial + 12, FONT_STANDARD); // second part of serial
+		oledDrawString(52, 20, "Serial No.", FONT_STANDARD, OLED_WHITE);
+		oledDrawString(52, 40, serial + 12, FONT_STANDARD, OLED_WHITE); // second part of serial
 		serial[12] = 0;
-		oledDrawString(52, 30, serial, FONT_STANDARD);      // first part of serial
+		oledDrawString(52, 30, serial, FONT_STANDARD, OLED_WHITE);      // first part of serial
 		oledDrawStringRight(OLED_WIDTH - 1, OLED_HEIGHT - 8, "Loader " VERSTR(VERSION_MAJOR) "." VERSTR(VERSION_MINOR) "." VERSTR(VERSION_PATCH), FONT_STANDARD);
 	} else {
-		oledDrawString(52, 10, "Welcome!", FONT_STANDARD);
-		oledDrawString(52, 30, "Please visit", FONT_STANDARD);
-		oledDrawString(52, 50, "trezor.io/start", FONT_STANDARD);
+		oledDrawString(42, 10, "Welcome!", FONT_STANDARD, OLED_WHITE);
+		oledDrawString(42, 30, "Please visit", FONT_STANDARD, OLED_WHITE);
+		oledDrawString(42, 50, "trezor.io", FONT_STANDARD, OLED_WHITE);
 	}
 	oledRefresh();
 
@@ -143,7 +143,7 @@ int main(void)
 	if (firmware_present() && unpressed) {
 
 		oledClear();
-		oledDrawBitmap(40, 0, &bmp_logo64_empty);
+		oledDrawBitmap(40, 0, &bmp_logo64_empty, OLED_WHITE);
 		oledRefresh();
 
 		uint8_t hash[32];
