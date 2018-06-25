@@ -558,7 +558,7 @@ void u2f_register(const APDU *a)
 		// error: testof-user-presence is required
 		buttonUpdate(); // Clear button state
 		if (0 == memcmp(req->appId, BOGUS_APPID, U2F_APPID_SIZE)) {
-			layoutDialog(&bmp_icon_warning, NULL, _("OK"), NULL, _("Another U2F device"), _("was used to register"), _("in this application."), NULL, NULL, NULL);
+			layoutDialog(&bmp_icon_warning, NULL, _("OK"), NULL, _("Another U2F device"), _("was used to register"), _("in this application."), NULL, NULL, NULL, OLED_WHITE);
 		} else {
 			const char *appname;
 			const BITMAP *appicon;

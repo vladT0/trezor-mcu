@@ -151,7 +151,7 @@ static void protectCheckMaxTry(uint32_t wait) {
 		return;
 
 	storage_wipe();
-	layoutDialog(&bmp_icon_error, NULL, NULL, NULL, _("Too many wrong PIN"), _("attempts. Storage has"), _("been wiped."), NULL, _("Please unplug"), _("the device."));
+	layoutDialog(&bmp_icon_error, NULL, NULL, NULL, _("Too many wrong PIN"), _("attempts. Storage has"), _("been wiped."), NULL, _("Please unplug"), _("the device."), OLED_WHITE);
 	for (;;) {} // loop forever
 }
 
@@ -178,7 +178,7 @@ bool protectPin(bool use_cached)
 		if (wait == 1) {
 			secstrbuf[16] = 0;
 		}
-		layoutDialog(&bmp_icon_info, NULL, NULL, NULL, _("Wrong PIN entered"), NULL, _("Please wait"), secstr, _("to continue ..."), NULL);
+		layoutDialog(&bmp_icon_info, NULL, NULL, NULL, _("Wrong PIN entered"), NULL, _("Please wait"), secstr, _("to continue ..."), NULL, OLED_WHITE);
 		// wait one second
 		usbSleep(1000);
 		if (msg_tiny_id == MessageType_MessageType_Initialize) {

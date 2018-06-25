@@ -35,6 +35,9 @@
 #include "ethereum_tokens.h"
 #include "memzero.h"
 
+extern const char *str_cancel;
+extern const char *str_confirm;
+
 /* maximum supported chain id.  v must fit in an uint32_t. */
 #define MAX_CHAIN_ID 2147483630
 
@@ -304,8 +307,8 @@ static void layoutEthereumConfirmTx(const uint8_t *to, uint32_t to_len, const ui
 	}
 
 	layoutDialogSwipe(&bmp_icon_question,
-		_("Cancel"),
-		_("Confirm"),
+		str_cancel,
+		str_confirm,
 		NULL,
 		_("Send"),
 		amount,
@@ -343,8 +346,8 @@ static void layoutEthereumData(const uint8_t *data, uint32_t len, uint32_t total
 		summarystart = summary + 4;
 
 	layoutDialogSwipe(&bmp_icon_question,
-		_("Cancel"),
-		_("Confirm"),
+		str_cancel,
+		str_confirm,
 		NULL,
 		_("Transaction data:"),
 		hexdata[0],
@@ -387,8 +390,8 @@ static void layoutEthereumFee(const uint8_t *value, uint32_t value_len,
 	}
 
 	layoutDialogSwipe(&bmp_icon_question,
-		_("Cancel"),
-		_("Confirm"),
+		str_cancel,
+		str_confirm,
 		NULL,
 		_("Really send"),
 		tx_value,

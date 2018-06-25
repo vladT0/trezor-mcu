@@ -18,25 +18,23 @@
  */
 
 #include <string.h>
-
 #include "layout.h"
-#include "oled.h"
 
 void layoutButtonNo(const char *btnNo)
 {
 	oledDrawString(1, OLED_HEIGHT - 8, "\x15", FONT_STANDARD, OLED_WHITE);
 	oledDrawString(fontCharWidth(FONT_STANDARD, '\x15') + 3, OLED_HEIGHT - 8, btnNo, FONT_STANDARD, OLED_WHITE);
-	oledInvert(0, OLED_HEIGHT - 9, fontCharWidth(FONT_STANDARD, '\x15') + oledStringWidth(btnNo, FONT_STANDARD) + 2, OLED_HEIGHT - 1);
+	oledInvert(0, OLED_HEIGHT - 9, fontCharWidth(FONT_STANDARD, '\x15') + oledStringWidth(btnNo, FONT_STANDARD) + 3, OLED_HEIGHT - 1);
 }
 
 void layoutButtonYes(const char *btnYes)
 {
 	oledDrawString(OLED_WIDTH - fontCharWidth(FONT_STANDARD, '\x06') - 1, OLED_HEIGHT - 8, "\x06", FONT_STANDARD, OLED_WHITE);
 	oledDrawStringRight(OLED_WIDTH - fontCharWidth(FONT_STANDARD, '\x06') - 3, OLED_HEIGHT - 8, btnYes, FONT_STANDARD);
-	oledInvert(OLED_WIDTH - oledStringWidth(btnYes, FONT_STANDARD) - fontCharWidth(FONT_STANDARD, '\x06') - 4, OLED_HEIGHT - 9, OLED_WIDTH - 1, OLED_HEIGHT - 1);
+	oledInvert(OLED_WIDTH - oledStringWidth(btnYes, FONT_STANDARD) - fontCharWidth(FONT_STANDARD, '\x06') - 4 , OLED_HEIGHT - 9, OLED_WIDTH - 1, OLED_HEIGHT - 1);
 }
 
-void layoutDialog(const BITMAP *icon, const char *btnNo, const char *btnYes, const char *desc, const char *line1, const char *line2, const char *line3, const char *line4, const char *line5, const char *line6)
+void layoutDialog(const BITMAP *icon, const char *btnNo, const char *btnYes, const char *desc, const char *line1, const char *line2, const char *line3, const char *line4, const char *line5, const char *line6, uint8_t color)
 {
 	int left = 0;
 	oledClear();
@@ -44,19 +42,19 @@ void layoutDialog(const BITMAP *icon, const char *btnNo, const char *btnYes, con
 		oledDrawBitmap(0, 0, icon, OLED_RED);
 		left = icon->width + 2;
 	}
-	if (line1) oledDrawString(left, 0 * 9, line1, FONT_STANDARD, OLED_WHITE);
-	if (line2) oledDrawString(left, 1 * 9, line2, FONT_STANDARD, OLED_WHITE);
+	if (line1) oledDrawString(left, 0 * 9, line1, FONT_STANDARD, color);
+	if (line2) oledDrawString(left, 1 * 9, line2, FONT_STANDARD, color);
 	left = 2;
-	if (line3) oledDrawString(left, 2 * 9, line3, FONT_STANDARD, OLED_WHITE);
-	if (line4) oledDrawString(left, 3 * 9, line4, FONT_STANDARD, OLED_WHITE);
+	if (line3) oledDrawString(left, 2 * 9, line3, FONT_STANDARD, color);
+	if (line4) oledDrawString(left, 3 * 9, line4, FONT_STANDARD, color);
 	if (desc) {
 		oledDrawStringCenter(OLED_HEIGHT - 2 * 9 - 1, desc, FONT_STANDARD);
 		if (btnYes || btnNo) {
 			oledHLine(OLED_HEIGHT - 21);
 		}
 	} else {
-		if (line5) oledDrawString(left, 4 * 9, line5, FONT_STANDARD, OLED_WHITE);
-		if (line6) oledDrawString(left, 5 * 9, line6, FONT_STANDARD, OLED_WHITE);
+		if (line5) oledDrawString(left, 4 * 9, line5, FONT_STANDARD, color);
+		if (line6) oledDrawString(left, 5 * 9, line6, FONT_STANDARD, color);
 		if (btnYes || btnNo) {
 			oledHLine(OLED_HEIGHT - 13);
 		}

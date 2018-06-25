@@ -1,7 +1,7 @@
 /*
  * This file is part of the TREZOR project, https://trezor.io/
  *
- * Copyright (C) 2014 Pavol Rusnak <stick@satoshilabs.com>
+ * Copyright (C) 2018 vladT0
  *
  * This library is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -20,6 +20,12 @@
 #ifndef __RESOURCE_H__
 #define __RESOURCE_H__
 
-static char do_you_want[] = "Do you want to";
+static const char *str_do_you_want;
+static const char *str_i_take_risk;
+static const char *str_abort;
+static const char *str_continue;
+static const char *str_cancel;
+static const char *str_confirm;
+static const char *str_next;
 
 #endif

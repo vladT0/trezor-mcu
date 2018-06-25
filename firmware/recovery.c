@@ -35,6 +35,8 @@
 #include "recovery-table.h"
 #include "memzero.h"
 
+extern const char *str_confirm;
+
 /* number of words expected in the new seed */
 static uint32_t word_count;
 
@@ -178,17 +180,17 @@ static void recovery_done(void) {
 			bool match = (storage_isInitialized() && storage_containsMnemonic(new_mnemonic));
 			memzero(new_mnemonic, sizeof(new_mnemonic));
 			if (match) {
-				layoutDialog(&bmp_icon_ok, NULL, _("Confirm"), NULL,
+				layoutDialog(&bmp_icon_ok, NULL, str_confirm, NULL,
 					_("The seed is valid"),
 					_("and MATCHES"),
-					_("the one in the device."), NULL, NULL, NULL);
+					_("the one in the device."), NULL, NULL, NULL, OLED_WHITE);
 				protectButton(ButtonRequestType_ButtonRequest_Other, true);
 				fsm_sendSuccess(_("The seed is valid and matches the one in the device"));
 			} else {
-				layoutDialog(&bmp_icon_error, NULL, _("Confirm"), NULL,
+				layoutDialog(&bmp_icon_error, NULL, str_confirm, NULL,
 					_("The seed is valid"),
 					_("but does NOT MATCH"),
-					_("the one in the device."), NULL, NULL, NULL);
+					_("the one in the device."), NULL, NULL, NULL, OLED_WHITE);
 				protectButton(ButtonRequestType_ButtonRequest_Other, true);
 				fsm_sendFailure(FailureType_Failure_DataError,
 					_("The seed is valid but does not match the one in the device"));
@@ -200,8 +202,8 @@ static void recovery_done(void) {
 		if (!dry_run) {
 			session_clear(true);
 		} else {
-			layoutDialog(&bmp_icon_error, NULL, _("Confirm"), NULL,
-				_("The seed is"), _("INVALID!"), NULL, NULL, NULL, NULL);
+			layoutDialog(&bmp_icon_error, NULL, str_confirm, NULL,
+				_("The seed is"), _("INVALID!"), NULL, NULL, NULL, NULL, OLED_WHITE);
 			protectButton(ButtonRequestType_ButtonRequest_Other, true);
 		}
 		fsm_sendFailure(FailureType_Failure_DataError, _("Invalid seed, are words in correct order?"));

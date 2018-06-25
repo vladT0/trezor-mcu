@@ -187,7 +187,7 @@ void fsm_msgGetAddress(GetAddress *msg)
 		bool mismatch = path_mismatched(coin, msg);
 
 		if (mismatch) {
-			layoutDialogSwipe(&bmp_icon_warning, _("Abort"), _("Continue"), NULL, _("Wrong address path"), _("for selected coin."), NULL, _("Continue at your"), _("own risk!"), NULL);
+			layoutDialogSwipe(&bmp_icon_warning, str_abort, str_continue, NULL, _("Wrong address path"), _("for selected coin."), NULL, _("Continue at your"), _("own risk!"), NULL);
 			if (!protectButton(ButtonRequestType_ButtonRequest_Other, false)) {
 				fsm_sendFailure(FailureType_Failure_ActionCancelled, NULL);
 				layoutHome();

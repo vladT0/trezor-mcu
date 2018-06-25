@@ -35,24 +35,27 @@
 #include "rng.h"
 #include "timer.h"
 
+extern const char *str_abort;
+extern const char *str_continue;
+
 void layoutFirmwareHash(const uint8_t *hash)
 {
 	char str[4][17];
 	for (int i = 0; i < 4; i++) {
 		data2hex(hash + i * 8, 8, str[i]);
 	}
-	layoutDialog(&bmp_icon_question, "Abort", "Continue", "Comp. fingerprints", str[0], str[1], str[2], str[3], NULL, NULL);
+	layoutDialog(NULL, str_abort, str_continue, "Comp. fingerprints", str[0], str[1], str[2], str[3], NULL, NULL, OLED_RED);
 }
 
 void show_halt(void)
 {
-	layoutDialog(&bmp_icon_error, NULL, NULL, NULL, "Unofficial fw.", "aborted.", NULL, "Unplug TREZOR", "contact support.", NULL);
+	layoutDialog(&bmp_icon_error, NULL, NULL, NULL, "Unofficial fware.", "aborted.", NULL, "Unplug TREZOR", "contact support.", NULL, OLED_WHITE);
 	shutdown();
 }
 
 void show_unofficial_warning(const uint8_t *hash)
 {
-	layoutDialog(&bmp_icon_warning, "Abort", "Continue", NULL, "WARNING!", NULL, "Unofficial fw.", "detected.", NULL, NULL);
+	layoutDialog(&bmp_icon_warning, str_abort, str_continue, NULL, "WARNING!", NULL, "Unofficial fware.", "detected.", NULL, NULL,OLED_WHITE);
 
 	do {
 		delay(100000);
@@ -158,6 +161,5 @@ int main(void)
 #endif
 
 	bootloader_loop();
-
 	return 0;
 }

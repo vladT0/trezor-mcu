@@ -27,6 +27,10 @@
 #include "rng.h"
 #include "secp256k1.h"
 
+extern const char *str_i_take_risk;
+extern const char *str_cancel;
+extern const char *str_next;
+
 const char *nem_validate_common(NEMTransactionCommon *common, bool inner) {
 	if (!common->has_network) {
 		common->has_network = true;
@@ -187,8 +191,8 @@ bool nem_askTransfer(const NEMTransactionCommon *common, const NEMTransfer *tran
 
 		if (unknownMosaic) {
 			layoutDialogSwipe(&bmp_icon_question,
-				_("Cancel"),
-				_("I take the risk"),
+				str_cancel,
+				str_i_take_risk,
 				_("Unknown Mosaics"),
 				_("Divisibility and levy"),
 				_("cannot be shown for"),
@@ -322,8 +326,8 @@ bool nem_fsmTransfer(nem_transaction_ctx *context, const HDNode *node, const NEM
 
 bool nem_askProvisionNamespace(const NEMTransactionCommon *common, const NEMProvisionNamespace *provision_namespace, const char *desc) {
 	layoutDialogSwipe(&bmp_icon_question,
-		_("Cancel"),
-		_("Next"),
+		str_cancel,
+		str_next,
 		desc,
 		_("Create namespace"),
 		provision_namespace->namespace,
@@ -358,8 +362,8 @@ bool nem_fsmProvisionNamespace(nem_transaction_ctx *context, const NEMTransactio
 
 bool nem_askMosaicCreation(const NEMTransactionCommon *common, const NEMMosaicCreation *mosaic_creation, const char *desc, const char *address) {
 	layoutDialogSwipe(&bmp_icon_question,
-		_("Cancel"),
-		_("Next"),
+		str_cancel,
+		str_next,
 		desc,
 		_("Create mosaic"),
 		mosaic_creation->definition.mosaic,
@@ -388,8 +392,8 @@ bool nem_askMosaicCreation(const NEMTransactionCommon *common, const NEMMosaicCr
 		sizeof(str_out));
 
 	layoutDialogSwipe(&bmp_icon_question,
-		_("Cancel"),
-		_("Next"),
+		str_cancel,
+		str_next,
 		_("Properties"),
 		mosaic_creation->definition.mutable_supply ? _("Mutable supply:") : _("Immutable supply:"),
 		str_out,
@@ -409,8 +413,8 @@ bool nem_askMosaicCreation(const NEMTransactionCommon *common, const NEMMosaicCr
 
 		if (strcmp(address, mosaic_creation->definition.levy_address) == 0) {
 			layoutDialogSwipe(&bmp_icon_question,
-				_("Cancel"),
-				_("Next"),
+				str_cancel,
+				str_next,
 				_("Levy Recipient"),
 				_("Levy will be paid to"),
 				_("yourself"),

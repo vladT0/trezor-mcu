@@ -3,6 +3,7 @@ NAME  = bootloader
 OBJS += bootloader.o
 OBJS += signatures.o
 OBJS += usb.o
+OBJS += resource.o
 
 OBJS += ../vendor/trezor-crypto/bignum.small.o
 OBJS += ../vendor/trezor-crypto/ecdsa.small.o

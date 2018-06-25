@@ -36,7 +36,13 @@
 #include "ecdsa.h"
 #include "secp256k1.h"
 #include "memzero.h"
-#include "resource.h"
+#include "memory.h"
+
+extern const char *str_do_you_want;
+extern const char *str_abort;
+extern const char *str_continue;
+extern const char *str_cancel;
+extern const char *str_confirm;
 
 #define FIRMWARE_MAGIC "TRZR"
 
@@ -353,7 +359,7 @@ static void hid_rx_callback(usbd_device *dev, uint8_t ep)
 			return;
 		}
 		if (msg_id == 0x0005) {		// WipeDevice message (id 5)
-			layoutDialog(&bmp_icon_question, "Cancel", "Confirm", NULL, do_you_want, "wipe the device?", NULL, "All data will be lost.", NULL, NULL);
+			layoutDialog(&bmp_icon_question, str_cancel, str_confirm, NULL, str_do_you_want, "wipe the device?", NULL, "All data will be lost.", NULL, NULL,OLED_WHITE);
 			do {
 				delay(100000);
 				buttonUpdate();
@@ -375,11 +381,11 @@ static void hid_rx_callback(usbd_device *dev, uint8_t ep)
 				flash_wait_for_last_operation();
 				flash_lock();
 				flash_state = STATE_END;
-				layoutDialog(&bmp_icon_ok, NULL, NULL, NULL, "Device", "successfully wiped.", NULL, "You may now", "unplug your TREZOR.", NULL);
+				layoutDialog(&bmp_icon_ok, NULL, NULL, NULL, "Device", "successfully wiped.", NULL, "You may now", "unplug your TREZOR.", NULL,OLED_WHITE);
 				send_msg_success(dev);
 			} else {
 				flash_state = STATE_END;
-				layoutDialog(&bmp_icon_warning, NULL, NULL, NULL, "Device wipe", "aborted.", NULL, "You may now", "unplug your TREZOR.", NULL);
+				layoutDialog(&bmp_icon_warning, NULL, NULL, NULL, "Device wipe", "aborted.", NULL, "You may now", "unplug your TREZOR.", NULL, OLED_WHITE);
 				send_msg_failure(dev);
 			}
 			return;
@@ -460,7 +466,8 @@ static void hid_rx_callback(usbd_device *dev, uint8_t ep)
 				status_cpu   ? "Test CPU ... OK"   : "Test CPU ... Failed",
 				status_flash ? "Test FLASH ... OK" : "Test FLASH ... Failed",
 				NULL,
-				NULL
+				NULL,
+				OLED_WHITE
 			);
 			return;
 		}
@@ -469,7 +476,7 @@ static void hid_rx_callback(usbd_device *dev, uint8_t ep)
 	if (flash_state == STATE_OPEN) {
 		if (msg_id == 0x0006) {		// FirmwareErase message (id 6)
 			if (!brand_new_firmware) {
-				layoutDialog(&bmp_icon_question, "Abort", "Continue", NULL, "Install new", "firmware?", NULL, "Never do this without", "your recovery card!", NULL);
+				layoutDialog(&bmp_icon_question, str_abort, str_continue, NULL, "Install new", "firmware?", NULL, "Never do this without", "your recovery card!", NULL, OLED_WHITE);
 				do {
 					delay(100000);
 					buttonUpdate();
@@ -510,7 +517,7 @@ static void hid_rx_callback(usbd_device *dev, uint8_t ep)
 					|| memcmp(hash, "\x2d\x86\x4c\x0b\x78\x9a\x43\x21\x4e\xee\x85\x24\xd3\x18\x20\x75\x12\x5e\x5c\xa2\xcd\x52\x7f\x35\x82\xec\x87\xff\xd9\x40\x76\xbc", 32) != 0) {
 					send_msg_failure(dev);
 					flash_state = STATE_END;
-					layoutDialog(&bmp_icon_error, NULL, NULL, NULL, "Error installing ", "firmware.", NULL, "Unplug your TREZOR", "and try again.", NULL);
+					layoutDialog(&bmp_icon_error, NULL, NULL, NULL, "Error installing ", "firmware.", NULL, "Unplug your TREZOR", "and try again.", NULL, OLED_WHITE);
 					return;
 				}
 
@@ -520,7 +527,7 @@ static void hid_rx_callback(usbd_device *dev, uint8_t ep)
 			}
 			send_msg_failure(dev);
 			flash_state = STATE_END;
-			layoutDialog(&bmp_icon_warning, NULL, NULL, NULL, "Firmware installation", "aborted.", NULL, "You may now", "unplug your TREZOR.", NULL);
+			layoutDialog(&bmp_icon_warning, NULL, NULL, NULL, "Firmware installation", "aborted.", NULL, "You may now", "unplug your TREZOR.", NULL, OLED_WHITE);
 			return;
 		}
 		return;
@@ -531,7 +538,7 @@ static void hid_rx_callback(usbd_device *dev, uint8_t ep)
 			if (buf[9] != 0x0a) { // invalid contents
 				send_msg_failure(dev);
 				flash_state = STATE_END;
-				layoutDialog(&bmp_icon_error, NULL, NULL, NULL, "Error installing ", "firmware.", NULL, "Unplug your TREZOR", "and try again.", NULL);
+				layoutDialog(&bmp_icon_error, NULL, NULL, NULL, "Error installing ", "firmware.", NULL, "Unplug your TREZOR", "and try again.", NULL, OLED_WHITE);
 				return;
 			}
 			// read payload length
@@ -540,14 +547,14 @@ static void hid_rx_callback(usbd_device *dev, uint8_t ep)
 			if (flash_len > FLASH_TOTAL_SIZE + FLASH_META_DESC_LEN - (FLASH_APP_START - FLASH_ORIGIN)) { // firmware is too big
 				send_msg_failure(dev);
 				flash_state = STATE_END;
-				layoutDialog(&bmp_icon_error, NULL, NULL, NULL, "Firmware is too big.", NULL, "Get official firmware", "from trezor.io/start", NULL, NULL);
+				layoutDialog(&bmp_icon_error, NULL, NULL, NULL, "Firmware is too big.", NULL, "Get official firmware", "from trezor.io/start", NULL, NULL, OLED_WHITE);
 				return;
 			}
 			// check firmware magic
 			if (memcmp(p, FIRMWARE_MAGIC, 4) != 0) {
 				send_msg_failure(dev);
 				flash_state = STATE_END;
-				layoutDialog(&bmp_icon_error, NULL, NULL, NULL, "Wrong firmware header.", NULL, "Get official firmware", "from trezor.io/start", NULL, NULL);
+				layoutDialog(&bmp_icon_error, NULL, NULL, NULL, "Wrong firmware header.", NULL, "Get official firmware", "from trezor.io/start", NULL, NULL, OLED_WHITE);
 				return;
 			}
 			flash_state = STATE_FLASHING;
@@ -576,7 +583,7 @@ static void hid_rx_callback(usbd_device *dev, uint8_t ep)
 		if (buf[0] != '?') {	// invalid contents
 			send_msg_failure(dev);
 			flash_state = STATE_END;
-			layoutDialog(&bmp_icon_error, NULL, NULL, NULL, "Error installing ", "firmware.", NULL, "Unplug your TREZOR", "and try again.", NULL);
+			layoutDialog(&bmp_icon_error, NULL, NULL, NULL, "Error installing ", "firmware.", NULL, "Unplug your TREZOR", "and try again.", NULL, OLED_WHITE);
 			return;
 		}
 		const uint8_t *p = buf + 1;
@@ -655,10 +662,10 @@ static void hid_rx_callback(usbd_device *dev, uint8_t ep)
 
 		flash_state = STATE_END;
 		if (hash_check_ok) {
-			layoutDialog(&bmp_icon_ok, NULL, NULL, NULL, "New firmware", "successfully installed.", NULL, "You may now", "unplug your TREZOR.", NULL);
+			layoutDialog(&bmp_icon_ok, NULL, NULL, NULL, "New firmware", "successfully installed.", NULL, "You may now", "unplug your TREZOR.", NULL, OLED_WHITE);
 			send_msg_success(dev);
 		} else {
-			layoutDialog(&bmp_icon_warning, NULL, NULL, NULL, "Firmware installation", "aborted.", NULL, "You need to repeat", "the procedure with", "the correct firmware.");
+			layoutDialog(&bmp_icon_warning, NULL, NULL, NULL, "Firmware installation", "aborted.", NULL, "You need to repeat", "the procedure with", "the correct firmware.", OLED_WHITE);
 			send_msg_failure(dev);
 		}
 		return;

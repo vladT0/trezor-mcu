@@ -44,6 +44,7 @@
 #include "u2f.h"
 #include "memzero.h"
 #include "supervise.h"
+#include "memory.h"
 
 /* magic constant to check validity of storage block */
 static const uint32_t storage_magic = 0x726f7473;   // 'stor' as uint32_t
@@ -116,7 +117,7 @@ static char CONFIDENTIAL sessionPassphrase[51];
 
 void storage_show_error(void)
 {
-	layoutDialog(&bmp_icon_error, NULL, NULL, NULL, _("Storage failure"), _("detected."), NULL, _("Please unplug"), _("the device."), NULL);
+	layoutDialog(&bmp_icon_error, NULL, NULL, NULL, _("Storage failure"), _("detected."), NULL, _("Please unplug"), _("the device."), NULL, OLED_WHITE);
 	shutdown();
 }
 

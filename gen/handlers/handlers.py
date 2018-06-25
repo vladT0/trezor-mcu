@@ -95,6 +95,6 @@ with open('handlers.c', 'wt') as f:
 	for i in handlers:
 		f.write('void __attribute__((noreturn)) %s(void)\n' % i)
 		f.write('{\n')
-		f.write('\tlayoutDialog(DIALOG_ICON_ERROR, NULL, NULL, NULL, "Encountered", NULL, "%s", NULL, "Please restart", "the device.");\n' % i.upper())
+		f.write('\tlayoutDialog(DIALOG_ICON_ERROR, NULL, NULL, NULL, "Encountered", NULL, "%s", NULL, "Please restart", "the device.",OLED_WHITE);\n' % i.upper())
 		f.write('\tfor (;;) {} // loop forever\n')
 		f.write('}\n\n')

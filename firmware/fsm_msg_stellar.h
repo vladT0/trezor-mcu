@@ -14,7 +14,7 @@ void fsm_msgStellarGetAddress(StellarGetAddress *msg)
 
     if (msg->has_show_display && msg->show_display) {
         const char **str_addr_rows = stellar_lineBreakAddress(node->public_key + 1);
-        layoutDialogSwipe(&bmp_icon_question, _("Cancel"), _("Confirm"), _("Share public account ID?"),
+        layoutDialogSwipe(&bmp_icon_question, str_cancel, str_confirm, _("Share public account ID?"),
             str_addr_rows[0],
             str_addr_rows[1],
             str_addr_rows[2],
@@ -54,7 +54,7 @@ void fsm_msgStellarGetPublicKey(StellarGetPublicKey *msg)
         char hex[32 * 2 + 1];
         data2hex(node->public_key + 1, 32, hex);
         const char **str_pubkey_rows = split_message((const uint8_t *)hex, 32 * 2, 16);
-        layoutDialogSwipe(&bmp_icon_question, _("Cancel"), _("Confirm"), _("Share public account ID?"),
+        layoutDialogSwipe(&bmp_icon_question, str_cancel, str_confirm, _("Share public account ID?"),
             str_pubkey_rows[0],
             str_pubkey_rows[1],
             str_pubkey_rows[2],

@@ -50,7 +50,7 @@ void check_bootloader(void)
 	int r = memory_bootloader_hash(hash);
 
 	if (!known_bootloader(r, hash)) {
-		layoutDialog(&bmp_icon_error, NULL, NULL, NULL, _("Unknown bootloader"), _("detected."), NULL, _("Unplug your TREZOR"), _("contact our support."), NULL);
+		layoutDialog(&bmp_icon_error, NULL, NULL, NULL, _("Unknown bootloader"), _("detected."), NULL, _("Unplug your TREZOR"), _("contact our support."), NULL, OLED_WHITE);
 		shutdown();
 	}
 
@@ -67,7 +67,7 @@ void check_bootloader(void)
 	// ATTEMPTING TO OVERWRITE BOOTLOADER WITH UNSIGNED FIRMWARE MAY BRICK
 	// YOUR DEVICE.
 
-	layoutDialog(&bmp_icon_warning, NULL, NULL, NULL, _("Updating bootloader"), NULL, NULL, _("DO NOT UNPLUG"), _("YOUR TREZOR!"), NULL);
+	layoutDialog(&bmp_icon_warning, NULL, NULL, NULL, _("Updating bootloader"), NULL, NULL, _("DO NOT UNPLUG"), _("YOUR TREZOR!"), NULL, OLED_WHITE);
 
 	// unlock sectors
 	memory_write_unlock();
@@ -87,13 +87,13 @@ void check_bootloader(void)
 		r = memory_bootloader_hash(hash);
 		if (r == 32 && 0 == memcmp(hash, bl_hash, 32)) {
 			// OK -> show info and halt
-			layoutDialog(&bmp_icon_info, NULL, NULL, NULL, _("Update finished"), _("successfully."), NULL, _("Please reconnect"), _("the device."), NULL);
+			layoutDialog(&bmp_icon_info, NULL, NULL, NULL, _("Update finished"), _("successfully."), NULL, _("Please reconnect"), _("the device."), NULL, OLED_WHITE);
 			shutdown();
 			return;
 		}
 	}
 	// show info and halt
-	layoutDialog(&bmp_icon_error, NULL, NULL, NULL, _("Bootloader update"), _("broken."), NULL, _("Unplug your TREZOR"), _("contact our support."), NULL);
+	layoutDialog(&bmp_icon_error, NULL, NULL, NULL, _("Bootloader update"), _("broken."), NULL, _("Unplug your TREZOR"), _("contact our support."), NULL, OLED_WHITE);
 	shutdown();
 #endif
 }

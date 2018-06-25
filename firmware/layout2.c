@@ -34,6 +34,11 @@
 #include "nem2.h"
 #include "gettext.h"
 
+extern const char *str_continue;
+extern const char *str_cancel;
+extern const char *str_confirm;
+extern const char *str_next;
+
 #define BITCOIN_DIVISIBILITY (8)
 
 static const char *slip44_extras(uint32_t coin_type)
@@ -185,7 +190,7 @@ void layoutDialogSwipe(const BITMAP *icon, const char *btnNo, const char *btnYes
 {
 	layoutLast = layoutDialogSwipe;
 	layoutSwipe();
-	layoutDialog(icon, btnNo, btnYes, desc, line1, line2, line3, line4, line5, line6);
+	layoutDialog(icon, btnNo, btnYes, desc, line1, line2, line3, line4, line5, line6,OLED_WHITE);
 }
 
 void layoutProgressSwipe(const char *desc, int permil)
@@ -367,7 +372,7 @@ void layoutSignMessage(const uint8_t *msg, uint32_t len)
 void layoutVerifyAddress(const char *address)
 {
 	const char **str = split_message((const uint8_t *)address, strlen(address), 17);
-	layoutDialogSwipe(&bmp_icon_info, _("Cancel"), _("Confirm"),
+	layoutDialogSwipe(&bmp_icon_info, str_cancel, str_confirm,
 		_("Confirm address?"),
 		_("Message signed by:"),
 		str[0], str[1], str[2], NULL, NULL);
@@ -376,7 +381,7 @@ void layoutVerifyAddress(const char *address)
 void layoutVerifyMessage(const uint8_t *msg, uint32_t len)
 {
 	const char **str = split_message(msg, len, 16);
-	layoutDialogSwipe(&bmp_icon_info, _("Cancel"), _("Confirm"),
+	layoutDialogSwipe(&bmp_icon_info, str_cancel, str_confirm,
 		_("Verified message"),
 		str[0], str[1], str[2], str[3], NULL, NULL);
 }
@@ -384,7 +389,7 @@ void layoutVerifyMessage(const uint8_t *msg, uint32_t len)
 void layoutCipherKeyValue(bool encrypt, const char *key)
 {
 	const char **str = split_message((const uint8_t *)key, strlen(key), 16);
-	layoutDialogSwipe(&bmp_icon_question, _("Cancel"), _("Confirm"),
+	layoutDialogSwipe(&bmp_icon_question, str_cancel, str_confirm,
 		encrypt ? _("Encrypt value of this key?") : _("Decrypt value of this key?"),
 		str[0], str[1], str[2], str[3], NULL, NULL);
 }
@@ -392,7 +397,7 @@ void layoutCipherKeyValue(bool encrypt, const char *key)
 void layoutEncryptMessage(const uint8_t *msg, uint32_t len, bool signing)
 {
 	const char **str = split_message(msg, len, 16);
-	layoutDialogSwipe(&bmp_icon_question, _("Cancel"), _("Confirm"),
+	layoutDialogSwipe(&bmp_icon_question, str_cancel, str_confirm,
 		signing ? _("Encrypt+Sign message?") : _("Encrypt message?"),
 		str[0], str[1], str[2], str[3], NULL, NULL);
 }
@@ -520,7 +525,7 @@ void layoutAddress(const char *address, const char *desc, bool qrcode, bool igno
 		layoutButtonNo(_("QR Code"));
 	}
 
-	layoutButtonYes(_("Continue"));
+	layoutButtonYes(str_continue);
 	oledRefresh();
 }
 
@@ -536,7 +541,7 @@ void layoutPublicKey(const uint8_t *pubkey)
 	}
 	data2hex(pubkey + 1, 32, hex);
 	const char **str = split_message((const uint8_t *)hex, 32 * 2, 16);
-	layoutDialogSwipe(&bmp_icon_question, NULL, _("Continue"), NULL,
+	layoutDialogSwipe(&bmp_icon_question, NULL, str_continue, NULL,
 		desc, str[0], str[1], str[2], str[3], NULL);
 }
 
@@ -595,7 +600,7 @@ void layoutSignIdentity(const IdentityType *identity, const char *challenge)
 		}
 	}
 
-	layoutDialogSwipe(&bmp_icon_question, _("Cancel"), _("Confirm"),
+	layoutDialogSwipe(&bmp_icon_question, str_cancel, str_confirm,
 		_("Do you want to sign in?"),
 		row_proto[0] ? row_proto : NULL,
 		row_hostport[0] ? row_hostport : NULL,
@@ -637,7 +642,7 @@ void layoutDecryptIdentity(const IdentityType *identity)
 		row_user[0] = 0;
 	}
 
-	layoutDialogSwipe(&bmp_icon_question, _("Cancel"), _("Confirm"),
+	layoutDialogSwipe(&bmp_icon_question, str_cancel, str_confirm,
 		_("Do you want to decrypt?"),
 		row_proto[0] ? row_proto : NULL,
 		row_hostport[0] ? row_hostport : NULL,
@@ -651,7 +656,7 @@ void layoutU2FDialog(const char *verb, const char *appname, const BITMAP *appico
 	if (!appicon) {
 		appicon = &bmp_icon_question;
 	}
-	layoutDialog(appicon, NULL, verb, NULL, verb, _("U2F security key?"), NULL, appname, NULL, NULL);
+	layoutDialog(appicon, NULL, verb, NULL, verb, _("U2F security key?"), NULL, appname, NULL, NULL,OLED_WHITE);
 }
 
 void layoutNEMDialog(const BITMAP *icon, const char *btnNo, const char *btnYes, const char *desc, const char *line1, const char *address) {
@@ -682,8 +687,8 @@ void layoutNEMTransferXEM(const char *desc, uint64_t quantity, const bignum256 *
 	nem_mosaicFormatAmount(NEM_MOSAIC_DEFINITION_XEM, fee, NULL, str_fee, sizeof(str_fee));
 
 	layoutDialogSwipe(&bmp_icon_question,
-		_("Cancel"),
-		_("Next"),
+		str_cancel,
+		str_next,
 		desc,
 		_("Confirm transfer of"),
 		str_out,
@@ -703,8 +708,8 @@ void layoutNEMNetworkFee(const char *desc, bool confirm, const char *fee1_desc, 
 	}
 
 	layoutDialogSwipe(&bmp_icon_question,
-		_("Cancel"),
-		confirm ? _("Confirm") : _("Next"),
+		str_cancel,
+		confirm ? str_confirm : str_next,
 		desc,
 		fee1_desc,
 		str_fee1,
@@ -724,8 +729,8 @@ void layoutNEMTransferMosaic(const NEMMosaicDefinition *definition, uint64_t qua
 	}
 
 	layoutDialogSwipe(&bmp_icon_question,
-		_("Cancel"),
-		_("Next"),
+		str_cancel,
+		str_next,
 		definition->has_name ? definition->name : _("Mosaic"),
 		_("Confirm transfer of"),
 		str_out,
@@ -748,8 +753,8 @@ void layoutNEMTransferUnknownMosaic(const char *namespace, const char *mosaic, u
 	}
 
 	layoutDialogSwipe(&bmp_icon_question,
-		_("Cancel"),
-		_("I take the risk"),
+		str_cancel,
+		str_confirm,
 		_("Unknown Mosaic"),
 		_("Confirm transfer of"),
 		str_out,
@@ -765,12 +770,12 @@ void layoutNEMTransferPayload(const uint8_t *payload, size_t length, bool encryp
 		data2hex(&payload[1], length - 1, encoded);
 
 		const char **str = split_message((uint8_t *) encoded, sizeof(encoded) - 1, 16);
-		layoutDialogSwipe(&bmp_icon_question, _("Cancel"), _("Next"),
+		layoutDialogSwipe(&bmp_icon_question, str_cancel, str_next,
 			encrypted ? _("Encrypted hex data") : _("Unencrypted hex data"),
 			str[0], str[1], str[2], str[3], NULL, NULL);
 	} else {
 		const char **str = split_message(payload, length, 16);
-		layoutDialogSwipe(&bmp_icon_question, _("Cancel"), _("Next"),
+		layoutDialogSwipe(&bmp_icon_question, str_cancel, str_next,
 			encrypted ? _("Encrypted message") : _("Unencrypted message"),
 			str[0], str[1], str[2], str[3], NULL, NULL);
 	}
@@ -778,7 +783,7 @@ void layoutNEMTransferPayload(const uint8_t *payload, size_t length, bool encryp
 
 void layoutNEMMosaicDescription(const char *description) {
 	const char **str = split_message((uint8_t *) description, strlen(description), 16);
-	layoutDialogSwipe(&bmp_icon_question, _("Cancel"), _("Next"),
+	layoutDialogSwipe(&bmp_icon_question, str_cancel, str_next,
 		_("Mosaic Description"),
 		str[0], str[1], str[2], str[3], NULL, NULL);
 }
@@ -803,8 +808,8 @@ void layoutNEMLevy(const NEMMosaicDefinition *definition, uint8_t network) {
 		bn_format_uint64(definition->fee, NULL, NULL, 0, 0, false, str_out, sizeof(str_out));
 
 		layoutDialogSwipe(&bmp_icon_question,
-			_("Cancel"),
-			_("Next"),
+			str_cancel,
+			str_next,
 			_("Percentile Levy"),
 			_("Raw levy value is"),
 			str_out,
@@ -818,8 +823,8 @@ void layoutNEMLevy(const NEMMosaicDefinition *definition, uint8_t network) {
 	default:
 		nem_mosaicFormatAmount(mosaic, definition->fee, NULL, str_out, sizeof(str_out));
 		layoutDialogSwipe(&bmp_icon_question,
-			_("Cancel"),
-			_("Next"),
+			str_cancel,
+			str_next,
 			_("Absolute Levy"),
 			_("Levy is"),
 			str_out,
